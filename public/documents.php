@@ -18,8 +18,19 @@ if (!$folderId) {
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     if ($userRole === 'admin') { // Restreindre les actions aux administrateurs
         if (isset($_POST['upload_document'])) {
-            if (uploadDocument($folderId, $_FILES['file'])) {
-                echo "<div class='alert alert-success'>Fichier téléversé avec succès.</div>";
+            $requireSignature = isset($_POST['require_signature']);
+            $userEmail = $_POST['user_email'] ?? null;
+
+            $result = uploadDocument($folderId, $_FILES['file'], $requireSignature, $userEmail);
+
+            if ($result['success']) {
+                if ($result['signatureRequired']) {
+                    // Rediriger vers le form builder DocuSeal
+                    header("Location: configure_signature.php?token={$result['docuSealToken']}&fileName={$result['fileName']}");
+                    exit;
+                } else {
+                    echo "<div class='alert alert-success'>Fichier téléversé avec succès.</div>";
+                }
             } else {
                 echo "<div class='alert alert-danger'>Erreur lors du téléversement du fichier.</div>";
             }
@@ -104,13 +115,11 @@ $documents = listDocumentsByFolder($folderId);
 </head>
 <body>
 <div class="container mt-5">
-    <!-- Conteneur de l'en-tête -->
     <div class="header-container">
         <a href="dashboard.php" class="btn-back"><i class="fas fa-arrow-left"></i> Retour au Tableau de Bord</a>
         <h1>Documents du Dossier</h1>
     </div>
 
-    <!-- Formulaire pour téléverser un document (visible uniquement pour les administrateurs) -->
     <?php if ($userRole === 'admin'): ?>
         <div class="card mb-4">
             <div class="card-body">
@@ -119,13 +128,24 @@ $documents = listDocumentsByFolder($folderId);
                         <label for="file" class="form-label">Sélectionner un fichier</label>
                         <input type="file" class="form-control" id="file" name="file" required>
                     </div>
-                    <button type="submit" name="upload_document" class="btn btn-primary"><i class="fas fa-upload"></i> Téléverser</button>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="require_signature" name="require_signature">
+                        <label class="form-check-label" for="require_signature">
+                            Ce fichier nécessite une signature
+                        </label>
+                    </div>
+                    <div class="mb-3">
+                        <label for="user_email" class="form-label">E-mail de l'utilisateur pour la signature</label>
+                        <input type="email" class="form-control" id="user_email" name="user_email">
+                    </div>
+                    <button type="submit" name="upload_document" class="btn btn-primary">
+                        <i class="fas fa-upload"></i> Téléverser
+                    </button>
                 </form>
             </div>
         </div>
     <?php endif; ?>
 
-    <!-- Liste des documents -->
     <div class="card">
         <div class="card-header bg-info text-white">
             <h2 class="card-title">Liste des Documents</h2>
@@ -148,8 +168,6 @@ $documents = listDocumentsByFolder($folderId);
                                     <td data-label="Date"><?= htmlspecialchars($document['upload_date']) ?></td>
                                     <td data-label="Actions">
                                         <a href="/uploads/<?= htmlspecialchars($document['file_path']) ?>" download class="btn btn-success btn-sm">Télécharger</a>
-
-                                        </a>
                                         <?php if ($userRole === 'admin'): ?>
                                             <form method="POST" class="d-inline">
                                                 <input type="hidden" name="document_id" value="<?= $document['id'] ?>">
