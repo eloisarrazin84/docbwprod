@@ -109,7 +109,7 @@ function deleteDocument($documentId) {
 }
 
 function generateDocuSealToken($integrationEmail, $documentUrls) {
-    $apiKey = getenv('DOCUSEAL_API_KEY'); // Utilisation de variable d'environnement pour la clé API
+    $apiKey = 'AiJmTA3XuQz26ipWC68a27kTRXWGaUM1FEmyxVB7FV6'; // Utilisation de variable d'environnement pour la clé API
     $userEmail = 'eloi.sarrazin@outdoorsecours.fr'; // L'email de l'admin DocuSeal
 
     if (!$apiKey) {
