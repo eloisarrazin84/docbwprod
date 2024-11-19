@@ -1,0 +1,36 @@
+version: '3.8'
+
+services:
+  php:
+    build:
+      context: ./php
+    volumes:
+      - ./public:/var/www/html
+      - ./src:/var/www/src
+    ports:
+      - "8091:80"
+    depends_on:
+      - db
+    networks:
+      - bwprod-network
+
+  db:
+    image: mysql:8.0
+    container_name: bwprod-db
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: bwprod
+      MYSQL_USER: bwuser
+      MYSQL_PASSWORD: bwpassword
+    volumes:
+      - ./mysql:/docker-entrypoint-initdb.d
+      - db-data:/var/lib/mysql
+    networks:
+      - bwprod-network
+
+networks:
+  bwprod-network:
+    driver: bridge
+
+volumes:
+  db-data:
