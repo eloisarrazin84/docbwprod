@@ -147,8 +147,8 @@ $documents = listDocumentsByFolder($folderId);
                                     <td data-label="Nom"><?= htmlspecialchars($document['file_name']) ?></td>
                                     <td data-label="Date"><?= htmlspecialchars($document['upload_date']) ?></td>
                                     <td data-label="Actions">
-                                        <a href="../uploads/<?= htmlspecialchars($document['file_path']) ?>" download class="btn btn-success btn-sm">
-                                            <i class="fas fa-download"></i> Télécharger
+                                        <a href="/uploads/<?= htmlspecialchars($document['file_path']) ?>" download class="btn btn-success btn-sm">Télécharger</a>
+
                                         </a>
                                         <?php if ($userRole === 'admin'): ?>
                                             <form method="POST" class="d-inline">
