@@ -1,7 +1,9 @@
 <?php
 require 'db_connect.php';
+require 'vendor/autoload.php'; // Pour DocuSeal et JWT
+use \Firebase\JWT\JWT;
 
-function uploadDocument($folderId, $file) {
+function uploadDocument($folderId, $file, $requireSignature = false, $userEmail = null) {
     global $pdo;
 
     // Vérifier si l'utilisateur est connecté
@@ -25,16 +27,32 @@ function uploadDocument($folderId, $file) {
     $filePath = $uploadDir . $fileName;
 
     // Déplacer le fichier
-    if (move_uploaded_file($file['tmp_name'], $filePath)) {
-        // Sauvegarder dans la base de données
-        $stmt = $pdo->prepare("INSERT INTO documents (folder_id, user_id, file_name, file_path) VALUES (?, ?, ?, ?)");
-        $stmt->execute([$folderId, $userId, $file['name'], $fileName]);
-        return true;
-    } else {
+    if (!move_uploaded_file($file['tmp_name'], $filePath)) {
         die("Erreur : Impossible de téléverser le fichier.");
     }
-}
 
+    // Sauvegarder le document dans la base de données
+    $stmt = $pdo->prepare("INSERT INTO documents (folder_id, user_id, file_name, file_path) VALUES (?, ?, ?, ?)");
+    $stmt->execute([$folderId, $userId, $file['name'], $fileName]);
+
+    // Si une signature est requise, générer le DocuSeal token
+    if ($requireSignature && $userEmail) {
+        $docuSealToken = generateDocuSealToken($userEmail, [$filePath]);
+
+        return [
+            'success' => true,
+            'signatureRequired' => true,
+            'docuSealToken' => $docuSealToken,
+            'fileName' => $fileName,
+        ];
+    }
+
+    return [
+        'success' => true,
+        'signatureRequired' => false,
+        'message' => 'Fichier téléversé avec succès.',
+    ];
+}
 
 function listDocumentsByFolder($folderId) {
     global $pdo;
@@ -45,13 +63,14 @@ function listDocumentsByFolder($folderId) {
 
 function deleteDocument($documentId) {
     global $pdo;
+
     // Récupérer le chemin du fichier
     $stmt = $pdo->prepare("SELECT file_path FROM documents WHERE id = ?");
     $stmt->execute([$documentId]);
     $document = $stmt->fetch(PDO::FETCH_ASSOC);
 
     if ($document) {
-        $filePath = '../uploads/' . $document['file_path'];
+        $filePath = '/var/www/uploads/' . $document['file_path'];
         if (file_exists($filePath)) {
             unlink($filePath); // Supprimer le fichier
         }
@@ -64,4 +83,20 @@ function deleteDocument($documentId) {
 
     return false;
 }
+
+function generateDocuSealToken($integrationEmail, $documentUrls) {
+    $apiKey = 'VOTRE_API_KEY'; // Remplacez par votre clé API DocuSeal
+    $userEmail = 'admin@company.com'; // L'email de l'admin DocuSeal
+
+    $payload = [
+        'user_email' => $userEmail,
+        'integration_email' => $integrationEmail,
+        'external_id' => uniqid(),
+        'name' => 'Signature Document',
+        'document_urls' => $documentUrls,
+    ];
+
+    return JWT::encode($payload, $apiKey, 'HS256');
+}
 ?>
+
