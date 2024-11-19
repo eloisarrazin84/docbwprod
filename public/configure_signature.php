@@ -33,10 +33,23 @@ $fileName = htmlspecialchars($_GET['fileName']);
     </style>
 </head>
 <body>
-    <h1>Configurer la Signature pour <?= $fileName ?></h1>
-    <!-- Intégration du composant DocuSeal -->
-    <div id="docuSealContainer">
-        <docuseal-builder data-token="<?= $token ?>"></docuseal-builder>
-    </div>
+    <h1>Configurer la Signature pour <?= htmlspecialchars($_GET['fileName']) ?></h1>
+    
+    <!-- Intégration du Builder -->
+    <docuseal-builder data-token="<?= htmlspecialchars($_GET['token']) ?>"></docuseal-builder>
+    
+    <!-- Script pour gérer l'événement de redirection -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const builder = document.querySelector('docuseal-builder');
+
+            if (builder) {
+                builder.addEventListener('send-completed', function () {
+                    // Redirige l'utilisateur après l'envoi réussi
+                    window.location.href = '/success_page.php'; // Mettez l'URL souhaitée ici
+                });
+            }
+        });
+    </script>
 </body>
 </html>
