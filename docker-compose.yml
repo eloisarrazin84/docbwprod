@@ -7,6 +7,8 @@ services:
     volumes:
       - ./public:/var/www/html
       - ./src:/var/www/src
+      - ./uploads:/var/www/uploads
+      - ./uploads.conf:/etc/apache2/sites-available/uploads.conf
     ports:
       - "8091:80"
     depends_on:
