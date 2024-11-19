@@ -17,7 +17,7 @@ function uploadDocument($folderId, $file, $requireSignature = false, $userEmail 
     // Dossier de stockage
     $uploadDir = '/var/www/uploads/';
     if (!is_dir($uploadDir)) {
-        if (!mkdir($uploadDir, 0777, true)) {
+        if (!mkdir($uploadDir, 0777, true) && !is_dir($uploadDir)) {
             return ['success' => false, 'message' => "Erreur : Impossible de créer le répertoire $uploadDir"];
         }
     }
@@ -28,12 +28,18 @@ function uploadDocument($folderId, $file, $requireSignature = false, $userEmail 
 
     // Déplacer le fichier
     if (!move_uploaded_file($file['tmp_name'], $filePath)) {
+        error_log("Erreur : Impossible de téléverser le fichier. Détails : " . print_r(error_get_last(), true));
         return ['success' => false, 'message' => 'Erreur : Impossible de téléverser le fichier.'];
     }
 
     // Sauvegarder le document dans la base de données
-    $stmt = $pdo->prepare("INSERT INTO documents (folder_id, user_id, file_name, file_path) VALUES (?, ?, ?, ?)");
-    $stmt->execute([$folderId, $userId, $file['name'], $fileName]);
+    try {
+        $stmt = $pdo->prepare("INSERT INTO documents (folder_id, user_id, file_name, file_path) VALUES (?, ?, ?, ?)");
+        $stmt->execute([$folderId, $userId, $file['name'], $fileName]);
+    } catch (PDOException $e) {
+        error_log("Erreur PDO : " . $e->getMessage());
+        return ['success' => false, 'message' => 'Erreur : Impossible de sauvegarder le fichier dans la base de données.'];
+    }
 
     // Si une signature est requise, générer le DocuSeal token
     if ($requireSignature && $userEmail) {
@@ -64,37 +70,52 @@ function uploadDocument($folderId, $file, $requireSignature = false, $userEmail 
 
 function listDocumentsByFolder($folderId) {
     global $pdo;
-    $stmt = $pdo->prepare("SELECT id, file_name, file_path, upload_date FROM documents WHERE folder_id = ?");
-    $stmt->execute([$folderId]);
-    return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    try {
+        $stmt = $pdo->prepare("SELECT id, file_name, file_path, upload_date FROM documents WHERE folder_id = ?");
+        $stmt->execute([$folderId]);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    } catch (PDOException $e) {
+        error_log("Erreur PDO : " . $e->getMessage());
+        return [];
+    }
 }
 
 function deleteDocument($documentId) {
     global $pdo;
 
-    // Récupérer le chemin du fichier
-    $stmt = $pdo->prepare("SELECT file_path FROM documents WHERE id = ?");
-    $stmt->execute([$documentId]);
-    $document = $stmt->fetch(PDO::FETCH_ASSOC);
-
-    if ($document) {
-        $filePath = '/var/www/uploads/' . $document['file_path'];
-        if (file_exists($filePath)) {
-            unlink($filePath); // Supprimer le fichier
-        }
-
-        // Supprimer l'entrée de la base de données
-        $stmt = $pdo->prepare("DELETE FROM documents WHERE id = ?");
+    try {
+        // Récupérer le chemin du fichier
+        $stmt = $pdo->prepare("SELECT file_path FROM documents WHERE id = ?");
         $stmt->execute([$documentId]);
-        return true;
+        $document = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        if ($document) {
+            $filePath = '/var/www/uploads/' . $document['file_path'];
+            if (file_exists($filePath)) {
+                unlink($filePath); // Supprimer le fichier
+            }
+
+            // Supprimer l'entrée de la base de données
+            $stmt = $pdo->prepare("DELETE FROM documents WHERE id = ?");
+            $stmt->execute([$documentId]);
+            return true;
+        }
+    } catch (PDOException $e) {
+        error_log("Erreur PDO : " . $e->getMessage());
+        return false;
     }
 
     return false;
 }
 
 function generateDocuSealToken($integrationEmail, $documentUrls) {
-    $apiKey = getenv('AiJmTA3XuQz26ipWC68a27kTRXWGaUM1FEmyxVB7FV6'); // Remplacez par une variable d'environnement
+    $apiKey = getenv('DOCUSEAL_API_KEY'); // Utilisation de variable d'environnement pour la clé API
     $userEmail = 'eloi.sarrazin@outdoorsecours.fr'; // L'email de l'admin DocuSeal
+
+    if (!$apiKey) {
+        error_log("Erreur : Clé API DocuSeal manquante.");
+        return null;
+    }
 
     $payload = [
         'user_email' => $userEmail,
