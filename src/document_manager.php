@@ -85,8 +85,8 @@ function deleteDocument($documentId) {
 }
 
 function generateDocuSealToken($integrationEmail, $documentUrls) {
-    $apiKey = 'VOTRE_API_KEY'; // Remplacez par votre clé API DocuSeal
-    $userEmail = 'admin@company.com'; // L'email de l'admin DocuSeal
+    $apiKey = 'AiJmTA3XuQz26ipWC68a27kTRXWGaUM1FEmyxVB7FV6'; // Remplacez par votre clé API DocuSeal
+    $userEmail = 'eloi.sarrazin@outdoorsecours.fr'; // L'email de l'admin DocuSeal
 
     $payload = [
         'user_email' => $userEmail,
