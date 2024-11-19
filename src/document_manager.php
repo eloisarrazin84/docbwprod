@@ -4,8 +4,16 @@ require 'db_connect.php';
 function uploadDocument($folderId, $file) {
     global $pdo;
 
+    // Vérifier si l'utilisateur est connecté
+    if (!isset($_SESSION['user_id'])) {
+        die("Erreur : Utilisateur non connecté.");
+    }
+
+    // Récupérer l'ID utilisateur depuis la session
+    $userId = $_SESSION['user_id'];
+
     // Dossier de stockage
-$uploadDir = '/var/www/uploads/';
+    $uploadDir = '/var/www/uploads/';
     if (!is_dir($uploadDir)) {
         if (!mkdir($uploadDir, 0777, true)) {
             die("Erreur : Impossible de créer le répertoire $uploadDir");
@@ -19,13 +27,14 @@ $uploadDir = '/var/www/uploads/';
     // Déplacer le fichier
     if (move_uploaded_file($file['tmp_name'], $filePath)) {
         // Sauvegarder dans la base de données
-        $stmt = $pdo->prepare("INSERT INTO documents (folder_id, file_name, file_path) VALUES (?, ?, ?)");
-        $stmt->execute([$folderId, $file['name'], $fileName]);
+        $stmt = $pdo->prepare("INSERT INTO documents (folder_id, user_id, file_name, file_path) VALUES (?, ?, ?, ?)");
+        $stmt->execute([$folderId, $userId, $file['name'], $fileName]);
         return true;
     } else {
-        return false;
+        die("Erreur : Impossible de téléverser le fichier.");
     }
 }
+
 
 function listDocumentsByFolder($folderId) {
     global $pdo;
