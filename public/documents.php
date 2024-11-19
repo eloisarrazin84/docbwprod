@@ -1,5 +1,4 @@
 <?php
-ob_start(); // Démarre la mise en mémoire tampon
 require '../src/db_connect.php';
 require '../src/document_manager.php';
 require '../src/session_manager.php';
@@ -12,7 +11,7 @@ $userRole = getUserRole(); // Fonction existante pour récupérer le rôle de l'
 // ID du dossier
 $folderId = isset($_GET['folder_id']) ? $_GET['folder_id'] : null;
 if (!$folderId) {
-    header('Location: error_page.php?error=no_folder'); // Redirige vers une page d'erreur
+    header('Location: error_page.php?error=no_folder'); // Redirige vers une page d'erreur personnalisée
     exit();
 }
 
@@ -23,20 +22,31 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $requireSignature = isset($_POST['require_signature']);
             $userEmail = $_POST['user_email'] ?? null;
 
-            $result = uploadDocument($folderId, $_FILES['file'], $requireSignature, $userEmail);
+            // Validation du fichier
+            if (isset($_FILES['file']) && $_FILES['file']['error'] === UPLOAD_ERR_OK) {
+                $result = uploadDocument($folderId, $_FILES['file'], $requireSignature, $userEmail);
 
-            if ($result['success']) {
-                if ($result['signatureRequired']) {
-                    header("Location: configure_signature.php?token={$result['docuSealToken']}&fileName={$result['fileName']}");
-                    exit();
+                if ($result['success']) {
+                    if ($result['signatureRequired']) {
+                        // Rediriger vers le form builder DocuSeal
+                        header("Location: configure_signature.php?token=" . urlencode($result['docuSealToken']) . "&fileName=" . urlencode($result['fileName']));
+                        exit();
+                    } else {
+                        echo "<div class='alert alert-success'>Fichier téléversé avec succès.</div>";
+                    }
                 } else {
-                    echo "<div class='alert alert-success'>Fichier téléversé avec succès.</div>";
+                    echo "<div class='alert alert-danger'>" . htmlspecialchars($result['message']) . "</div>";
                 }
             } else {
-                echo "<div class='alert alert-danger'>Erreur lors du téléversement du fichier.</div>";
+                echo "<div class='alert alert-danger'>Erreur : Fichier invalide ou téléversement échoué.</div>";
             }
         } elseif (isset($_POST['delete_document'])) {
-            deleteDocument($_POST['document_id']);
+            $deleteSuccess = deleteDocument($_POST['document_id']);
+            if ($deleteSuccess) {
+                echo "<div class='alert alert-success'>Document supprimé avec succès.</div>";
+            } else {
+                echo "<div class='alert alert-danger'>Erreur lors de la suppression du document.</div>";
+            }
         }
     } else {
         echo "<div class='alert alert-danger'>Erreur : Vous n'avez pas les autorisations nécessaires pour effectuer cette action.</div>";
@@ -45,7 +55,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
 // Récupérer les documents du dossier
 $documents = listDocumentsByFolder($folderId);
-ob_end_flush(); // Arrête la mise en mémoire tampon
 ?>
 <!DOCTYPE html>
 <html lang="fr">
