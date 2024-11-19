@@ -1,4 +1,5 @@
 <?php
+ob_start(); // Démarre la mise en mémoire tampon
 require '../src/db_connect.php';
 require '../src/document_manager.php';
 require '../src/session_manager.php';
@@ -11,12 +12,13 @@ $userRole = getUserRole(); // Fonction existante pour récupérer le rôle de l'
 // ID du dossier
 $folderId = isset($_GET['folder_id']) ? $_GET['folder_id'] : null;
 if (!$folderId) {
-    die("Erreur : Aucun dossier sélectionné.");
+    header('Location: error_page.php?error=no_folder'); // Redirige vers une page d'erreur
+    exit();
 }
 
 // Gestion des actions
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-    if ($userRole === 'admin') { // Restreindre les actions aux administrateurs
+    if ($userRole === 'admin') {
         if (isset($_POST['upload_document'])) {
             $requireSignature = isset($_POST['require_signature']);
             $userEmail = $_POST['user_email'] ?? null;
@@ -25,9 +27,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
             if ($result['success']) {
                 if ($result['signatureRequired']) {
-                    // Rediriger vers le form builder DocuSeal
                     header("Location: configure_signature.php?token={$result['docuSealToken']}&fileName={$result['fileName']}");
-                    exit;
+                    exit();
                 } else {
                     echo "<div class='alert alert-success'>Fichier téléversé avec succès.</div>";
                 }
@@ -38,12 +39,13 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             deleteDocument($_POST['document_id']);
         }
     } else {
-        die("<div class='alert alert-danger'>Erreur : Vous n'avez pas les autorisations nécessaires pour effectuer cette action.</div>");
+        echo "<div class='alert alert-danger'>Erreur : Vous n'avez pas les autorisations nécessaires pour effectuer cette action.</div>";
     }
 }
 
 // Récupérer les documents du dossier
 $documents = listDocumentsByFolder($folderId);
+ob_end_flush(); // Arrête la mise en mémoire tampon
 ?>
 <!DOCTYPE html>
 <html lang="fr">
