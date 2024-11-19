@@ -1,5 +1,7 @@
 <?php
-session_start();
+if (session_status() == PHP_SESSION_NONE) {
+    session_start();
+}
 
 function isLoggedIn() {
     return isset($_SESSION['user_id']);
@@ -11,15 +13,23 @@ function getUserRole() {
 
 function requireLogin() {
     if (!isLoggedIn()) {
-        header('Location: login.php');
-        exit();
+        if (!headers_sent()) {
+            header('Location: login.php');
+            exit();
+        } else {
+            die("Redirection échouée : les en-têtes ont déjà été envoyés.");
+        }
     }
 }
 
 function requireAdmin() {
     if (getUserRole() !== 'admin') {
-        header('Location: unauthorized.php');
-        exit();
+        if (!headers_sent()) {
+            header('Location: unauthorized.php');
+            exit();
+        } else {
+            die("Redirection échouée : les en-têtes ont déjà été envoyés.");
+        }
     }
 }
 ?>
