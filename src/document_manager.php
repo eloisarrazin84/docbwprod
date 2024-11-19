@@ -8,7 +8,7 @@ function uploadDocument($folderId, $file, $requireSignature = false, $userEmail 
 
     // Vérifier si l'utilisateur est connecté
     if (!isset($_SESSION['user_id'])) {
-        die("Erreur : Utilisateur non connecté.");
+        return ['success' => false, 'message' => 'Erreur : Utilisateur non connecté.'];
     }
 
     // Récupérer l'ID utilisateur depuis la session
@@ -18,7 +18,7 @@ function uploadDocument($folderId, $file, $requireSignature = false, $userEmail 
     $uploadDir = '/var/www/uploads/';
     if (!is_dir($uploadDir)) {
         if (!mkdir($uploadDir, 0777, true)) {
-            die("Erreur : Impossible de créer le répertoire $uploadDir");
+            return ['success' => false, 'message' => "Erreur : Impossible de créer le répertoire $uploadDir"];
         }
     }
 
@@ -28,7 +28,7 @@ function uploadDocument($folderId, $file, $requireSignature = false, $userEmail 
 
     // Déplacer le fichier
     if (!move_uploaded_file($file['tmp_name'], $filePath)) {
-        die("Erreur : Impossible de téléverser le fichier.");
+        return ['success' => false, 'message' => 'Erreur : Impossible de téléverser le fichier.'];
     }
 
     // Sauvegarder le document dans la base de données
@@ -37,7 +37,15 @@ function uploadDocument($folderId, $file, $requireSignature = false, $userEmail 
 
     // Si une signature est requise, générer le DocuSeal token
     if ($requireSignature && $userEmail) {
-        $docuSealToken = generateDocuSealToken($userEmail, [$filePath]);
+        // URL publique sécurisée
+        $baseURL = 'https://bwprod.outdoorsecours.fr/uploads/';
+        $documentUrl = $baseURL . $fileName;
+
+        $docuSealToken = generateDocuSealToken($userEmail, [$documentUrl]);
+
+        if (!$docuSealToken) {
+            return ['success' => false, 'message' => 'Erreur : Impossible de générer le token pour DocuSeal.'];
+        }
 
         return [
             'success' => true,
@@ -85,7 +93,7 @@ function deleteDocument($documentId) {
 }
 
 function generateDocuSealToken($integrationEmail, $documentUrls) {
-    $apiKey = 'AiJmTA3XuQz26ipWC68a27kTRXWGaUM1FEmyxVB7FV6'; // Remplacez par votre clé API DocuSeal
+    $apiKey = getenv('AiJmTA3XuQz26ipWC68a27kTRXWGaUM1FEmyxVB7FV6'); // Remplacez par une variable d'environnement
     $userEmail = 'eloi.sarrazin@outdoorsecours.fr'; // L'email de l'admin DocuSeal
 
     $payload = [
@@ -96,7 +104,11 @@ function generateDocuSealToken($integrationEmail, $documentUrls) {
         'document_urls' => $documentUrls,
     ];
 
-    return JWT::encode($payload, $apiKey, 'HS256');
+    try {
+        return JWT::encode($payload, $apiKey, 'HS256');
+    } catch (Exception $e) {
+        error_log("Erreur JWT : " . $e->getMessage());
+        return null;
+    }
 }
 ?>
-
