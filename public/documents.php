@@ -17,26 +17,24 @@ if (!$folderId) {
 
 // Gestion des actions
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-    if ($userRole === 'admin') {
-        if (isset($_POST['upload_document'])) {
-            $requireSignature = isset($_POST['require_signature']);
-            $userEmail = $_POST['user_email'] ?? null;
+    if (isset($_POST['upload_document']) && $userRole === 'admin') {
+        $requireSignature = isset($_POST['require_signature']);
+        $userEmail = $_POST['user_email'] ?? null;
 
-            // Validation du fichier
-            if (isset($_FILES['file']) && $_FILES['file']['error'] === UPLOAD_ERR_OK) {
-                $result = uploadDocument($folderId, $_FILES['file'], $requireSignature, $userEmail);
+        // Validation du fichier
+        if (isset($_FILES['file']) && $_FILES['file']['error'] === UPLOAD_ERR_OK) {
+            $result = uploadDocument($folderId, $_FILES['file'], $requireSignature, $userEmail);
 
-                if ($result['success']) {
-                    echo "<div class='alert alert-success'>Fichier téléversé avec succès.</div>";
-                } else {
-                    echo "<div class='alert alert-danger'>" . htmlspecialchars($result['message']) . "</div>";
-                }
+            if ($result['success']) {
+                echo "<div class='alert alert-success'>Fichier téléversé avec succès.</div>";
             } else {
-                echo "<div class='alert alert-danger'>Erreur : Fichier invalide ou téléversement échoué.</div>";
+                echo "<div class='alert alert-danger'>" . htmlspecialchars($result['message']) . "</div>";
             }
+        } else {
+            echo "<div class='alert alert-danger'>Erreur : Fichier invalide ou téléversement échoué.</div>";
         }
     } elseif (isset($_POST['sign_document'])) {
-        $documentId = $_POST['document_id'];
+        $documentId = intval($_POST['document_id']);
         header("Location: signature.php?document_id=$documentId&folder_id=$folderId");
         exit();
     }
@@ -173,6 +171,8 @@ $documents = listDocumentsByFolder($folderId);
                                                 <input type="hidden" name="document_id" value="<?= $document['id'] ?>">
                                                 <button type="submit" name="sign_document" class="btn btn-primary btn-sm">Signer</button>
                                             </form>
+                                        <?php else: ?>
+                                            <span class="badge bg-success">Signé</span>
                                         <?php endif; ?>
                                     </td>
                                 </tr>
@@ -191,4 +191,3 @@ $documents = listDocumentsByFolder($folderId);
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
-
