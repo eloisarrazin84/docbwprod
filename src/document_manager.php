@@ -1,8 +1,11 @@
 <?php
 require 'db_connect.php';
-require 'vendor/autoload.php'; // Pour DocuSeal et JWT
-use \Firebase\JWT\JWT;
+require 'vendor/autoload.php'; // Pour les bibliothèques nécessaires
+require_once('fpdi/src/autoload.php'); // Assurez-vous que le chemin est correct pour FPDI
 
+use setasign\Fpdi\Fpdi;
+
+// Fonction pour téléverser un document
 function uploadDocument($folderId, $file, $requireSignature = false, $userEmail = null) {
     global $pdo;
 
@@ -32,46 +35,32 @@ function uploadDocument($folderId, $file, $requireSignature = false, $userEmail 
         return ['success' => false, 'message' => 'Erreur : Impossible de téléverser le fichier.'];
     }
 
+    // Initialiser le statut de signature
+    $signedByUser = 0;
+
     // Sauvegarder le document dans la base de données
     try {
-        $stmt = $pdo->prepare("INSERT INTO documents (folder_id, user_id, file_name, file_path) VALUES (?, ?, ?, ?)");
-        $stmt->execute([$folderId, $userId, $file['name'], $fileName]);
+        $stmt = $pdo->prepare("INSERT INTO documents (folder_id, user_id, file_name, file_path, signed_by_user) VALUES (?, ?, ?, ?, ?)");
+        $stmt->execute([$folderId, $userId, $file['name'], $fileName, $signedByUser]);
     } catch (PDOException $e) {
         error_log("Erreur PDO : " . $e->getMessage());
         return ['success' => false, 'message' => 'Erreur : Impossible de sauvegarder le fichier dans la base de données.'];
     }
 
-    // Si une signature est requise, générer le DocuSeal token
-    if ($requireSignature && $userEmail) {
-        // URL publique sécurisée
-        $baseURL = 'https://bwprod.outdoorsecours.fr/uploads/';
-        $documentUrl = $baseURL . $fileName;
-
-        $docuSealToken = generateDocuSealToken($userEmail, [$documentUrl]);
-
-        if (!$docuSealToken) {
-            return ['success' => false, 'message' => 'Erreur : Impossible de générer le token pour DocuSeal.'];
-        }
-
-        return [
-            'success' => true,
-            'signatureRequired' => true,
-            'docuSealToken' => $docuSealToken,
-            'fileName' => $fileName,
-        ];
-    }
+    // Si une signature est requise, vous pouvez ajouter une préparation supplémentaire ici
 
     return [
         'success' => true,
-        'signatureRequired' => false,
+        'signatureRequired' => $requireSignature,
         'message' => 'Fichier téléversé avec succès.',
     ];
 }
 
+// Fonction pour lister les documents par dossier
 function listDocumentsByFolder($folderId) {
     global $pdo;
     try {
-        $stmt = $pdo->prepare("SELECT id, file_name, file_path, upload_date FROM documents WHERE folder_id = ?");
+        $stmt = $pdo->prepare("SELECT id, file_name, file_path, upload_date, signed_by_user FROM documents WHERE folder_id = ?");
         $stmt->execute([$folderId]);
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     } catch (PDOException $e) {
@@ -80,6 +69,84 @@ function listDocumentsByFolder($folderId) {
     }
 }
 
+// Fonction pour obtenir un document par son ID
+function getDocumentById($documentId) {
+    global $pdo;
+    try {
+        $stmt = $pdo->prepare("SELECT * FROM documents WHERE id = ?");
+        $stmt->execute([$documentId]);
+        return $stmt->fetch(PDO::FETCH_ASSOC);
+    } catch (PDOException $e) {
+        error_log("Erreur PDO : " . $e->getMessage());
+        return null;
+    }
+}
+
+// Fonction pour marquer un document comme signé
+function markDocumentAsSigned($documentId) {
+    global $pdo;
+    try {
+        $stmt = $pdo->prepare("UPDATE documents SET signed_by_user = 1 WHERE id = ?");
+        $stmt->execute([$documentId]);
+    } catch (PDOException $e) {
+        error_log("Erreur PDO : " . $e->getMessage());
+    }
+}
+
+// Fonction pour ajouter une signature au document PDF
+function addSignatureToDocument($filePath, $signatureData) {
+    // Chemin du fichier PDF original
+    $fullFilePath = '/var/www/uploads/' . $filePath;
+
+    // Créer une nouvelle instance de FPDI
+    $pdf = new Fpdi();
+
+    // Définir le nombre de pages du PDF existant
+    $pageCount = $pdf->setSourceFile($fullFilePath);
+
+    // Importer toutes les pages du PDF
+    for ($pageNo = 1; $pageNo <= $pageCount; $pageNo++) {
+        $pdf->AddPage();
+        $templateId = $pdf->importPage($pageNo);
+        $pdf->useTemplate($templateId);
+    }
+
+    // Ajouter la signature sur la dernière page
+    // Convertir les données de la signature en image
+    $signatureImagePath = '/var/www/uploads/signatures/' . uniqid() . '.png';
+    if (!is_dir('/var/www/uploads/signatures/')) {
+        mkdir('/var/www/uploads/signatures/', 0777, true);
+    }
+    $signatureData = str_replace('data:image/png;base64,', '', $signatureData);
+    $signatureData = str_replace(' ', '+', $signatureData);
+    $signatureDecoded = base64_decode($signatureData);
+    file_put_contents($signatureImagePath, $signatureDecoded);
+
+    // Positionner la signature (ajustez les coordonnées selon vos besoins)
+    $pdf->Image($signatureImagePath, 50, 200, 100, 30);
+
+    // Enregistrer le nouveau PDF avec la signature
+    $signedFileName = str_replace('.pdf', '-signed.pdf', $filePath);
+    $signedFilePath = '/var/www/uploads/' . $signedFileName;
+    $pdf->Output($signedFilePath, 'F');
+
+    // Supprimer l'image de la signature temporaire
+    unlink($signatureImagePath);
+
+    // Mettre à jour le chemin du fichier dans la base de données
+    global $pdo;
+    try {
+        $stmt = $pdo->prepare("UPDATE documents SET file_path = ? WHERE file_path = ?");
+        $stmt->execute([$signedFileName, $filePath]);
+    } catch (PDOException $e) {
+        error_log("Erreur PDO : " . $e->getMessage());
+        return false;
+    }
+
+    return true;
+}
+
+// Fonction pour supprimer un document
 function deleteDocument($documentId) {
     global $pdo;
 
@@ -106,30 +173,5 @@ function deleteDocument($documentId) {
     }
 
     return false;
-}
-
-function generateDocuSealToken($integrationEmail, $documentUrls) {
-    $apiKey = 'AiJmTA3XuQz26ipWC68a27kTRXWGaUM1FEmyxVB7FV6'; // Utilisation de variable d'environnement pour la clé API
-    $userEmail = 'eloi.sarrazin@outdoorsecours.fr'; // L'email de l'admin DocuSeal
-
-    if (!$apiKey) {
-        error_log("Erreur : Clé API DocuSeal manquante.");
-        return null;
-    }
-
-    $payload = [
-        'user_email' => $userEmail,
-        'integration_email' => $integrationEmail,
-        'external_id' => uniqid(),
-        'name' => 'Signature Document',
-        'document_urls' => $documentUrls,
-    ];
-
-    try {
-        return JWT::encode($payload, $apiKey, 'HS256');
-    } catch (Exception $e) {
-        error_log("Erreur JWT : " . $e->getMessage());
-        return null;
-    }
 }
 ?>
