@@ -101,14 +101,14 @@ function addSignatureToDocument($filePath, $signatureData) {
     }
 
     // Journaliser les données de la signature pour vérifier leur format
-    error_log("Données de la signature (debug) : " . substr($signatureData, 0, 100));
+    error_log("Données de la signature reçues (debug) : " . substr($signatureData, 0, 100));
 
     // Vérifier et traiter les données de la signature
     if (strpos($signatureData, 'data:image/png;base64,') === 0) {
         $signatureData = str_replace('data:image/png;base64,', '', $signatureData);
     } else {
-        // Ajouter une gestion pour d'autres formats ou un débogage plus détaillé
-        error_log("Erreur : Les données de la signature ne commencent pas par 'data:image/png;base64,'.");
+        // Journaliser une erreur si les données ne commencent pas par le préfixe attendu
+        error_log("Erreur : Les données de la signature ne commencent pas par 'data:image/png;base64,'. Données reçues : " . substr($signatureData, 0, 100));
         throw new Exception("Erreur : Les données de la signature ne sont pas au format PNG Base64 valide.");
     }
 
@@ -179,8 +179,6 @@ function addSignatureToDocument($filePath, $signatureData) {
 
     return true;
 }
-
-
 // Fonction pour supprimer un document
 function deleteDocument($documentId) {
     global $pdo;
