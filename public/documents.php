@@ -18,12 +18,9 @@ if (!$folderId) {
 // Gestion des actions
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     if (isset($_POST['upload_document']) && $userRole === 'admin') {
-        $requireSignature = isset($_POST['require_signature']);
-        $userEmail = $_POST['user_email'] ?? null;
-
         // Validation du fichier
         if (isset($_FILES['file']) && $_FILES['file']['error'] === UPLOAD_ERR_OK) {
-            $result = uploadDocument($folderId, $_FILES['file'], $requireSignature, $userEmail);
+            $result = uploadDocument($folderId, $_FILES['file']);
 
             if ($result['success']) {
                 echo "<div class='alert alert-success'>Fichier téléversé avec succès.</div>";
@@ -33,10 +30,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         } else {
             echo "<div class='alert alert-danger'>Erreur : Fichier invalide ou téléversement échoué.</div>";
         }
-    } elseif (isset($_POST['sign_document'])) {
-        $documentId = intval($_POST['document_id']);
-        header("Location: signature.php?document_id=$documentId&folder_id=$folderId");
-        exit();
     }
 }
 
@@ -126,16 +119,6 @@ $documents = listDocumentsByFolder($folderId);
                         <label for="file" class="form-label">Sélectionner un fichier</label>
                         <input type="file" class="form-control" id="file" name="file" required>
                     </div>
-                    <div class="form-check">
-                        <input class="form-check-input" type="checkbox" id="require_signature" name="require_signature">
-                        <label class="form-check-label" for="require_signature">
-                            Ce fichier nécessite une signature
-                        </label>
-                    </div>
-                    <div class="mb-3">
-                        <label for="user_email" class="form-label">E-mail de l'utilisateur pour la signature</label>
-                        <input type="email" class="form-control" id="user_email" name="user_email">
-                    </div>
                     <button type="submit" name="upload_document" class="btn btn-primary">
                         <i class="fas fa-upload"></i> Téléverser
                     </button>
@@ -166,14 +149,6 @@ $documents = listDocumentsByFolder($folderId);
                                     <td data-label="Date"><?= htmlspecialchars($document['upload_date']) ?></td>
                                     <td data-label="Actions">
                                         <a href="/uploads/<?= htmlspecialchars($document['file_path']) ?>" download class="btn btn-success btn-sm">Télécharger</a>
-                                        <?php if (!$document['signed_by_user']): ?>
-                                            <form method="POST" class="d-inline">
-                                                <input type="hidden" name="document_id" value="<?= $document['id'] ?>">
-                                                <button type="submit" name="sign_document" class="btn btn-primary btn-sm">Signer</button>
-                                            </form>
-                                        <?php else: ?>
-                                            <span class="badge bg-success">Signé</span>
-                                        <?php endif; ?>
                                     </td>
                                 </tr>
                             <?php endforeach; ?>
