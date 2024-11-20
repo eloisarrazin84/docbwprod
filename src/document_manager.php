@@ -90,14 +90,13 @@ function markDocumentAsSigned($documentId) {
     }
 }
 
-// Fonction pour ajouter une signature au document PDF
 function addSignatureToDocument($filePath, $signatureData) {
     $uploadDir = '/var/www/uploads/';
     $fullFilePath = $uploadDir . $filePath;
 
-    // Vérifier si le fichier existe
+    // Vérifier si le fichier PDF existe
     if (!file_exists($fullFilePath)) {
-        throw new Exception("Erreur : Le fichier $filePath n'existe pas.");
+        throw new Exception("Erreur : Le fichier PDF $filePath n'existe pas.");
     }
 
     // Créer une nouvelle instance de FPDI
@@ -111,27 +110,53 @@ function addSignatureToDocument($filePath, $signatureData) {
         $pdf->useTemplate($templateId);
     }
 
-    // Créer une image temporaire pour la signature
-    $signatureImagePath = $uploadDir . 'signatures/' . uniqid() . '.png';
-    if (!is_dir($uploadDir . 'signatures/')) {
-        mkdir($uploadDir . 'signatures/', 0777, true);
+    // Vérifier et traiter les données de la signature
+    if (strpos($signatureData, 'data:image/png;base64,') === 0) {
+        $signatureData = str_replace('data:image/png;base64,', '', $signatureData);
+    } else {
+        throw new Exception("Erreur : Les données de la signature ne sont pas au format PNG Base64 valide.");
     }
-    $signatureData = str_replace('data:image/png;base64,', '', $signatureData);
-    $signatureData = base64_decode($signatureData);
-    file_put_contents($signatureImagePath, $signatureData);
 
-    // Ajouter la signature à la dernière page
+    $signatureData = str_replace(' ', '+', $signatureData);
+    $signatureDecoded = base64_decode($signatureData);
+
+    // Vérifier si la décompression Base64 a réussi
+    if ($signatureDecoded === false) {
+        throw new Exception("Erreur : Impossible de décoder les données Base64 de la signature.");
+    }
+
+    // Créer un répertoire temporaire pour les signatures
+    $signatureDir = $uploadDir . 'signatures/';
+    if (!is_dir($signatureDir)) {
+        mkdir($signatureDir, 0777, true);
+    }
+
+    // Chemin pour enregistrer l'image de la signature
+    $signatureImagePath = $signatureDir . uniqid() . '.png';
+
+    // Écrire les données dans un fichier image
+    if (file_put_contents($signatureImagePath, $signatureDecoded) === false) {
+        throw new Exception("Erreur : Impossible de créer le fichier de signature PNG.");
+    }
+
+    // Vérifier si le fichier PNG est valide
+    if (!getimagesize($signatureImagePath)) {
+        unlink($signatureImagePath); // Supprimer le fichier invalide
+        throw new Exception("Erreur : Le fichier généré n'est pas une image PNG valide.");
+    }
+
+    // Ajouter la signature au PDF
     $pdf->Image($signatureImagePath, 50, 200, 100, 30);
 
-    // Enregistrer le nouveau fichier
+    // Chemin pour enregistrer le nouveau PDF
     $signedFileName = str_replace('.pdf', '-signed.pdf', $filePath);
     $signedFilePath = $uploadDir . $signedFileName;
     $pdf->Output($signedFilePath, 'F');
 
-    // Supprimer le fichier temporaire de signature
+    // Supprimer l'image temporaire de la signature
     unlink($signatureImagePath);
 
-    // Mettre à jour le fichier dans la base de données
+    // Mettre à jour le chemin du fichier signé dans la base de données
     global $pdo;
     try {
         $stmt = $pdo->prepare("UPDATE documents SET file_path = ? WHERE file_path = ?");
@@ -143,6 +168,7 @@ function addSignatureToDocument($filePath, $signatureData) {
 
     return true;
 }
+
 
 // Fonction pour supprimer un document
 function deleteDocument($documentId) {
