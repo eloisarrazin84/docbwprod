@@ -99,8 +99,8 @@ function addSignatureToDocument($filePath, $signatureData) {
         throw new Exception("Erreur : Le fichier PDF $filePath n'existe pas.");
     }
 
-    // Journal pour les données de signature (à supprimer en production)
-    error_log("Signature data received: " . substr($signatureData, 0, 100)); // Limite à 100 caractères pour éviter les surcharges
+    // Journaliser les données de la signature pour vérifier leur format
+    error_log("Données de la signature (debug) : " . substr($signatureData, 0, 100));
 
     // Vérifier et traiter les données de la signature
     if (strpos($signatureData, 'data:image/png;base64,') === 0) {
@@ -147,6 +147,7 @@ function addSignatureToDocument($filePath, $signatureData) {
         $pdf->useTemplate($templateId);
     }
 
+    // Ajouter l'image de la signature sur la dernière page
     $pdf->Image($signatureImagePath, 50, 200, 100, 30);
 
     // Chemin pour enregistrer le nouveau PDF
@@ -169,6 +170,7 @@ function addSignatureToDocument($filePath, $signatureData) {
 
     return true;
 }
+
 
 // Fonction pour supprimer un document
 function deleteDocument($documentId) {
