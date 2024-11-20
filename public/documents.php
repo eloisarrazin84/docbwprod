@@ -30,6 +30,15 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         } else {
             echo "<div class='alert alert-danger'>Erreur : Fichier invalide ou téléversement échoué.</div>";
         }
+    } elseif (isset($_POST['delete_document']) && $userRole === 'admin') {
+        $documentId = intval($_POST['document_id']);
+        $deleteSuccess = deleteDocument($documentId);
+
+        if ($deleteSuccess) {
+            echo "<div class='alert alert-success'>Document supprimé avec succès.</div>";
+        } else {
+            echo "<div class='alert alert-danger'>Erreur lors de la suppression du document.</div>";
+        }
     }
 }
 
@@ -149,6 +158,12 @@ $documents = listDocumentsByFolder($folderId);
                                     <td data-label="Date"><?= htmlspecialchars($document['upload_date']) ?></td>
                                     <td data-label="Actions">
                                         <a href="/uploads/<?= htmlspecialchars($document['file_path']) ?>" download class="btn btn-success btn-sm">Télécharger</a>
+                                        <?php if ($userRole === 'admin'): ?>
+                                            <form method="POST" class="d-inline">
+                                                <input type="hidden" name="document_id" value="<?= $document['id'] ?>">
+                                                <button type="submit" name="delete_document" class="btn btn-danger btn-sm">Supprimer</button>
+                                            </form>
+                                        <?php endif; ?>
                                     </td>
                                 </tr>
                             <?php endforeach; ?>
