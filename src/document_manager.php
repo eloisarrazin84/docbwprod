@@ -90,6 +90,7 @@ function markDocumentAsSigned($documentId) {
     }
 }
 
+// Fonction pour ajouter une signature au document PDF
 function addSignatureToDocument($filePath, $signatureData) {
     $uploadDir = '/var/www/uploads/';
     $fullFilePath = $uploadDir . $filePath;
@@ -161,7 +162,7 @@ function addSignatureToDocument($filePath, $signatureData) {
     // Mettre à jour le chemin du fichier signé dans la base de données
     global $pdo;
     try {
-        $stmt = $pdo->prepare("UPDATE documents SET file_path = ? WHERE file_path = ?");
+        $stmt = $pdo->prepare("UPDATE documents SET file_path = ?, signed_by_user = 1 WHERE file_path = ?");
         $stmt->execute([$signedFileName, $filePath]);
     } catch (PDOException $e) {
         error_log("Erreur PDO : " . $e->getMessage());
@@ -170,7 +171,6 @@ function addSignatureToDocument($filePath, $signatureData) {
 
     return true;
 }
-
 
 // Fonction pour supprimer un document
 function deleteDocument($documentId) {
