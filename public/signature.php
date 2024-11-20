@@ -19,9 +19,9 @@ if (!$document) {
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $signature = $_POST['signature'];
+    $signatureData = $_POST['signature'];
 
-    if (addSignatureToDocument($document['file_path'], $signature)) {
+    if (addSignatureToDocument($document['file_path'], $signatureData)) {
         markDocumentAsSigned($documentId);
         header("Location: document.php?folder_id=$folderId");
         exit();
@@ -31,25 +31,35 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 ?>
 <!DOCTYPE html>
-<html>
+<html lang="fr">
 <head>
+    <meta charset="UTF-8">
     <title>Signer le Document</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/jsignature"></script>
+    <style>
+        /* Ajoutez ici votre CSS si nécessaire */
+    </style>
 </head>
 <body>
+<div class="container mt-5">
     <h1>Signer le Document</h1>
     <form method="POST">
-        <div id="signature-pad"></div>
+        <div id="signature-pad" class="mb-3"></div>
         <input type="hidden" name="signature" id="signature">
-        <button type="submit">Soumettre</button>
+        <button type="submit" class="btn btn-primary">Soumettre la signature</button>
     </form>
-    <script>
-        const pad = $("#signature-pad").jSignature();
-        document.querySelector("form").addEventListener("submit", function (e) {
-            e.preventDefault();
-            document.querySelector("#signature").value = pad.jSignature("getData", "image");
-            this.submit();
+</div>
+<script>
+    $(document).ready(function() {
+        var $sigdiv = $("#signature-pad").jSignature({'UndoButton':true});
+
+        $("form").on("submit", function(e) {
+            var datapair = $sigdiv.jSignature("getData", "image");
+            $("#signature").val(datapair);
         });
-    </script>
+    });
+</script>
 </body>
 </html>
