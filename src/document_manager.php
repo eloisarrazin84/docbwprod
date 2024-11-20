@@ -1,7 +1,7 @@
 <?php
 require 'db_connect.php';
 require 'vendor/autoload.php'; // Pour les bibliothèques nécessaires
-require_once('fpdi/src/autoload.php'); // Assurez-vous que le chemin est correct pour FPDI
+require_once 'fpdi/src/autoload.php'; // Assurez-vous que le chemin est correct pour FPDI
 
 use setasign\Fpdi\Fpdi;
 
