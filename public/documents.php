@@ -6,7 +6,7 @@ require '../src/session_manager.php';
 requireLogin(); // Vérifie si l'utilisateur est connecté
 
 // Récupérer le rôle de l'utilisateur connecté
-$userRole = getUserRole(); // Fonction existante pour récupérer le rôle de l'utilisateur
+$userRole = getUserRole();
 
 // ID du dossier
 $folderId = isset($_GET['folder_id']) ? $_GET['folder_id'] : null;
@@ -27,29 +27,18 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 $result = uploadDocument($folderId, $_FILES['file'], $requireSignature, $userEmail);
 
                 if ($result['success']) {
-                    if ($result['signatureRequired']) {
-                        // Rediriger vers le form builder DocuSeal
-                        header("Location: configure_signature.php?token=" . urlencode($result['docuSealToken']) . "&fileName=" . urlencode($result['fileName']));
-                        exit();
-                    } else {
-                        echo "<div class='alert alert-success'>Fichier téléversé avec succès.</div>";
-                    }
+                    echo "<div class='alert alert-success'>Fichier téléversé avec succès.</div>";
                 } else {
                     echo "<div class='alert alert-danger'>" . htmlspecialchars($result['message']) . "</div>";
                 }
             } else {
                 echo "<div class='alert alert-danger'>Erreur : Fichier invalide ou téléversement échoué.</div>";
             }
-        } elseif (isset($_POST['delete_document'])) {
-            $deleteSuccess = deleteDocument($_POST['document_id']);
-            if ($deleteSuccess) {
-                echo "<div class='alert alert-success'>Document supprimé avec succès.</div>";
-            } else {
-                echo "<div class='alert alert-danger'>Erreur lors de la suppression du document.</div>";
-            }
         }
-    } else {
-        echo "<div class='alert alert-danger'>Erreur : Vous n'avez pas les autorisations nécessaires pour effectuer cette action.</div>";
+    } elseif (isset($_POST['sign_document'])) {
+        $documentId = $_POST['document_id'];
+        header("Location: signature.php?document_id=$documentId&folder_id=$folderId");
+        exit();
     }
 }
 
@@ -179,12 +168,10 @@ $documents = listDocumentsByFolder($folderId);
                                     <td data-label="Date"><?= htmlspecialchars($document['upload_date']) ?></td>
                                     <td data-label="Actions">
                                         <a href="/uploads/<?= htmlspecialchars($document['file_path']) ?>" download class="btn btn-success btn-sm">Télécharger</a>
-                                        <?php if ($userRole === 'admin'): ?>
+                                        <?php if (!$document['signed_by_user']): ?>
                                             <form method="POST" class="d-inline">
                                                 <input type="hidden" name="document_id" value="<?= $document['id'] ?>">
-                                                <button type="submit" name="delete_document" class="btn btn-danger btn-sm">
-                                                    <i class="fas fa-trash"></i> Supprimer
-                                                </button>
+                                                <button type="submit" name="sign_document" class="btn btn-primary btn-sm">Signer</button>
                                             </form>
                                         <?php endif; ?>
                                     </td>
@@ -204,3 +191,4 @@ $documents = listDocumentsByFolder($folderId);
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
+
