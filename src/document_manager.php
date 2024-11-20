@@ -107,14 +107,20 @@ function addSignatureToDocument($filePath, $signatureData) {
     if (strpos($signatureData, 'data:image/png;base64,') === 0) {
         $signatureData = str_replace('data:image/png;base64,', '', $signatureData);
     } else {
+        // Ajouter une gestion pour d'autres formats ou un débogage plus détaillé
+        error_log("Erreur : Les données de la signature ne commencent pas par 'data:image/png;base64,'.");
         throw new Exception("Erreur : Les données de la signature ne sont pas au format PNG Base64 valide.");
     }
 
+    // Remplacer les espaces par des "+" pour éviter les problèmes d'encodage
     $signatureData = str_replace(' ', '+', $signatureData);
+
+    // Décoder les données Base64
     $signatureDecoded = base64_decode($signatureData);
 
     // Vérifier si la décompression Base64 a réussi
     if ($signatureDecoded === false) {
+        error_log("Erreur : Impossible de décoder les données Base64 de la signature.");
         throw new Exception("Erreur : Impossible de décoder les données Base64 de la signature.");
     }
 
@@ -129,12 +135,14 @@ function addSignatureToDocument($filePath, $signatureData) {
 
     // Écrire les données dans un fichier image
     if (file_put_contents($signatureImagePath, $signatureDecoded) === false) {
+        error_log("Erreur : Impossible d'écrire les données dans le fichier $signatureImagePath.");
         throw new Exception("Erreur : Impossible de créer le fichier de signature PNG.");
     }
 
     // Vérifier si le fichier PNG est valide
     if (!getimagesize($signatureImagePath)) {
         unlink($signatureImagePath); // Supprimer le fichier invalide
+        error_log("Erreur : Le fichier $signatureImagePath n'est pas une image PNG valide.");
         throw new Exception("Erreur : Le fichier généré n'est pas une image PNG valide.");
     }
 
@@ -171,6 +179,7 @@ function addSignatureToDocument($filePath, $signatureData) {
 
     return true;
 }
+
 
 // Fonction pour supprimer un document
 function deleteDocument($documentId) {
