@@ -46,8 +46,6 @@ function uploadDocument($folderId, $file, $requireSignature = false, $userEmail 
         return ['success' => false, 'message' => 'Erreur : Impossible de sauvegarder le fichier dans la base de données.'];
     }
 
-    // Si une signature est requise, vous pouvez ajouter une préparation supplémentaire ici
-
     return [
         'success' => true,
         'signatureRequired' => $requireSignature,
@@ -94,13 +92,16 @@ function markDocumentAsSigned($documentId) {
 
 // Fonction pour ajouter une signature au document PDF
 function addSignatureToDocument($filePath, $signatureData) {
-    // Chemin du fichier PDF original
-    $fullFilePath = '/var/www/uploads/' . $filePath;
+    $uploadDir = '/var/www/uploads/';
+    $fullFilePath = $uploadDir . $filePath;
+
+    // Vérifier si le fichier existe
+    if (!file_exists($fullFilePath)) {
+        throw new Exception("Erreur : Le fichier $filePath n'existe pas.");
+    }
 
     // Créer une nouvelle instance de FPDI
     $pdf = new Fpdi();
-
-    // Définir le nombre de pages du PDF existant
     $pageCount = $pdf->setSourceFile($fullFilePath);
 
     // Importer toutes les pages du PDF
@@ -110,29 +111,27 @@ function addSignatureToDocument($filePath, $signatureData) {
         $pdf->useTemplate($templateId);
     }
 
-    // Ajouter la signature sur la dernière page
-    // Convertir les données de la signature en image
-    $signatureImagePath = '/var/www/uploads/signatures/' . uniqid() . '.png';
-    if (!is_dir('/var/www/uploads/signatures/')) {
-        mkdir('/var/www/uploads/signatures/', 0777, true);
+    // Créer une image temporaire pour la signature
+    $signatureImagePath = $uploadDir . 'signatures/' . uniqid() . '.png';
+    if (!is_dir($uploadDir . 'signatures/')) {
+        mkdir($uploadDir . 'signatures/', 0777, true);
     }
     $signatureData = str_replace('data:image/png;base64,', '', $signatureData);
-    $signatureData = str_replace(' ', '+', $signatureData);
-    $signatureDecoded = base64_decode($signatureData);
-    file_put_contents($signatureImagePath, $signatureDecoded);
+    $signatureData = base64_decode($signatureData);
+    file_put_contents($signatureImagePath, $signatureData);
 
-    // Positionner la signature (ajustez les coordonnées selon vos besoins)
+    // Ajouter la signature à la dernière page
     $pdf->Image($signatureImagePath, 50, 200, 100, 30);
 
-    // Enregistrer le nouveau PDF avec la signature
+    // Enregistrer le nouveau fichier
     $signedFileName = str_replace('.pdf', '-signed.pdf', $filePath);
-    $signedFilePath = '/var/www/uploads/' . $signedFileName;
+    $signedFilePath = $uploadDir . $signedFileName;
     $pdf->Output($signedFilePath, 'F');
 
-    // Supprimer l'image de la signature temporaire
+    // Supprimer le fichier temporaire de signature
     unlink($signatureImagePath);
 
-    // Mettre à jour le chemin du fichier dans la base de données
+    // Mettre à jour le fichier dans la base de données
     global $pdo;
     try {
         $stmt = $pdo->prepare("UPDATE documents SET file_path = ? WHERE file_path = ?");
@@ -150,7 +149,6 @@ function deleteDocument($documentId) {
     global $pdo;
 
     try {
-        // Récupérer le chemin du fichier
         $stmt = $pdo->prepare("SELECT file_path FROM documents WHERE id = ?");
         $stmt->execute([$documentId]);
         $document = $stmt->fetch(PDO::FETCH_ASSOC);
