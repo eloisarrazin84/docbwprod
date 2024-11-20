@@ -2,10 +2,8 @@
 require 'db_connect.php';
 require 'vendor/autoload.php'; // Pour les bibliothèques nécessaires
 
-use setasign\Fpdi\Fpdi;
-
 // Fonction pour téléverser un document
-function uploadDocument($folderId, $file, $requireSignature = false, $userEmail = null) {
+function uploadDocument($folderId, $file) {
     global $pdo;
 
     // Vérifier si l'utilisateur est connecté
@@ -34,13 +32,10 @@ function uploadDocument($folderId, $file, $requireSignature = false, $userEmail 
         return ['success' => false, 'message' => 'Erreur : Impossible de téléverser le fichier.'];
     }
 
-    // Initialiser le statut de signature
-    $signedByUser = 0;
-
     // Sauvegarder le document dans la base de données
     try {
-        $stmt = $pdo->prepare("INSERT INTO documents (folder_id, user_id, file_name, file_path, signed_by_user) VALUES (?, ?, ?, ?, ?)");
-        $stmt->execute([$folderId, $userId, $file['name'], $fileName, $signedByUser]);
+        $stmt = $pdo->prepare("INSERT INTO documents (folder_id, user_id, file_name, file_path) VALUES (?, ?, ?, ?)");
+        $stmt->execute([$folderId, $userId, $file['name'], $fileName]);
     } catch (PDOException $e) {
         error_log("Erreur PDO : " . $e->getMessage());
         return ['success' => false, 'message' => 'Erreur : Impossible de sauvegarder le fichier dans la base de données.'];
@@ -48,7 +43,6 @@ function uploadDocument($folderId, $file, $requireSignature = false, $userEmail 
 
     return [
         'success' => true,
-        'signatureRequired' => $requireSignature,
         'message' => 'Fichier téléversé avec succès.',
     ];
 }
@@ -57,7 +51,7 @@ function uploadDocument($folderId, $file, $requireSignature = false, $userEmail 
 function listDocumentsByFolder($folderId) {
     global $pdo;
     try {
-        $stmt = $pdo->prepare("SELECT id, file_name, file_path, upload_date, signed_by_user FROM documents WHERE folder_id = ?");
+        $stmt = $pdo->prepare("SELECT id, file_name, file_path, upload_date FROM documents WHERE folder_id = ?");
         $stmt->execute([$folderId]);
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     } catch (PDOException $e) {
@@ -79,106 +73,6 @@ function getDocumentById($documentId) {
     }
 }
 
-// Fonction pour marquer un document comme signé
-function markDocumentAsSigned($documentId) {
-    global $pdo;
-    try {
-        $stmt = $pdo->prepare("UPDATE documents SET signed_by_user = 1 WHERE id = ?");
-        $stmt->execute([$documentId]);
-    } catch (PDOException $e) {
-        error_log("Erreur PDO : " . $e->getMessage());
-    }
-}
-
-// Fonction pour ajouter une signature au document PDF
-function addSignatureToDocument($filePath, $signatureData) {
-    $uploadDir = '/var/www/uploads/';
-    $fullFilePath = $uploadDir . $filePath;
-
-    // Vérifier si le fichier PDF existe
-    if (!file_exists($fullFilePath)) {
-        throw new Exception("Erreur : Le fichier PDF $filePath n'existe pas.");
-    }
-
-    // Journaliser les données de la signature pour vérifier leur format
-    error_log("Données de la signature reçues (debug) : " . substr($signatureData, 0, 100));
-
-    // Vérifier et traiter les données de la signature
-    if (strpos($signatureData, 'data:image/png;base64,') === 0) {
-        $signatureData = str_replace('data:image/png;base64,', '', $signatureData);
-    } else {
-        // Journaliser une erreur si les données ne commencent pas par le préfixe attendu
-        error_log("Erreur : Les données de la signature ne commencent pas par 'data:image/png;base64,'. Données reçues : " . substr($signatureData, 0, 100));
-        throw new Exception("Erreur : Les données de la signature ne sont pas au format PNG Base64 valide.");
-    }
-
-    // Remplacer les espaces par des "+" pour éviter les problèmes d'encodage
-    $signatureData = str_replace(' ', '+', $signatureData);
-
-    // Décoder les données Base64
-    $signatureDecoded = base64_decode($signatureData);
-
-    // Vérifier si la décompression Base64 a réussi
-    if ($signatureDecoded === false) {
-        error_log("Erreur : Impossible de décoder les données Base64 de la signature.");
-        throw new Exception("Erreur : Impossible de décoder les données Base64 de la signature.");
-    }
-
-    // Créer un répertoire temporaire pour les signatures
-    $signatureDir = $uploadDir . 'signatures/';
-    if (!is_dir($signatureDir)) {
-        mkdir($signatureDir, 0777, true);
-    }
-
-    // Chemin pour enregistrer l'image de la signature
-    $signatureImagePath = $signatureDir . uniqid() . '.png';
-
-    // Écrire les données dans un fichier image
-    if (file_put_contents($signatureImagePath, $signatureDecoded) === false) {
-        error_log("Erreur : Impossible d'écrire les données dans le fichier $signatureImagePath.");
-        throw new Exception("Erreur : Impossible de créer le fichier de signature PNG.");
-    }
-
-    // Vérifier si le fichier PNG est valide
-    if (!getimagesize($signatureImagePath)) {
-        unlink($signatureImagePath); // Supprimer le fichier invalide
-        error_log("Erreur : Le fichier $signatureImagePath n'est pas une image PNG valide.");
-        throw new Exception("Erreur : Le fichier généré n'est pas une image PNG valide.");
-    }
-
-    // Ajouter la signature au PDF
-    $pdf = new Fpdi();
-    $pageCount = $pdf->setSourceFile($fullFilePath);
-
-    for ($pageNo = 1; $pageNo <= $pageCount; $pageNo++) {
-        $pdf->AddPage();
-        $templateId = $pdf->importPage($pageNo);
-        $pdf->useTemplate($templateId);
-    }
-
-    // Ajouter l'image de la signature sur la dernière page
-    $pdf->Image($signatureImagePath, 50, 200, 100, 30);
-
-    // Chemin pour enregistrer le nouveau PDF
-    $signedFileName = str_replace('.pdf', '-signed.pdf', $filePath);
-    $signedFilePath = $uploadDir . $signedFileName;
-    $pdf->Output($signedFilePath, 'F');
-
-    // Supprimer l'image temporaire de la signature
-    unlink($signatureImagePath);
-
-    // Mettre à jour le chemin du fichier signé dans la base de données
-    global $pdo;
-    try {
-        $stmt = $pdo->prepare("UPDATE documents SET file_path = ?, signed_by_user = 1 WHERE file_path = ?");
-        $stmt->execute([$signedFileName, $filePath]);
-    } catch (PDOException $e) {
-        error_log("Erreur PDO : " . $e->getMessage());
-        return false;
-    }
-
-    return true;
-}
 // Fonction pour supprimer un document
 function deleteDocument($documentId) {
     global $pdo;
