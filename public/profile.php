@@ -61,23 +61,29 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
         // Gestion du téléversement de la photo de profil
         if (isset($_FILES['profile_image']) && $_FILES['profile_image']['error'] === UPLOAD_ERR_OK) {
-            $uploadDir = '/var/www/uploads/profiles/';
-            if (!is_dir($uploadDir)) {
-                mkdir($uploadDir, 0777, true);
-            }
+    $uploadDir = '/var/www/uploads/profiles/';
+    $webDir = '/uploads/profiles/'; // Chemin web vers les fichiers téléversés
+    
+    if (!is_dir($uploadDir)) {
+        mkdir($uploadDir, 0777, true);
+    }
 
-            $fileName = uniqid() . '-' . basename($_FILES['profile_image']['name']);
-            $filePath = $uploadDir . $fileName;
+    // Générer un nom unique pour le fichier
+    $fileName = uniqid() . '-' . basename($_FILES['profile_image']['name']);
+    $filePath = $uploadDir . $fileName;
 
-            if (move_uploaded_file($_FILES['profile_image']['tmp_name'], $filePath)) {
-                // Mettre à jour le chemin de l'image dans la base de données
-                $stmt = $pdo->prepare("UPDATE users SET profile_image = ? WHERE id = ?");
-                $stmt->execute([$fileName, $userId]);
-                $profileImageUrl = '/uploads/profiles/' . $fileName;
-            } else {
-                $errors[] = "Une erreur s'est produite lors du téléversement de la photo de profil.";
-            }
-        }
+    if (move_uploaded_file($_FILES['profile_image']['tmp_name'], $filePath)) {
+        // Chemin URL de l'image
+        $profileImageUrl = $webDir . $fileName;
+
+        // Mettre à jour dans la base de données
+        $stmt = $pdo->prepare("UPDATE users SET profile_image = ? WHERE id = ?");
+        $stmt->execute([$fileName, $userId]);
+    } else {
+        $errors[] = "Une erreur s'est produite lors du téléversement de la photo de profil.";
+    }
+}
+
 
         $success = true;
     }
