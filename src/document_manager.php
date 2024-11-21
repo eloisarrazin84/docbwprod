@@ -50,7 +50,7 @@ function uploadDocument($folderId, $file) {
             // Remplacer les placeholders par les valeurs dynamiques
             $emailContent = str_replace(
                 ['{{document_name}}', '{{logo_url}}'],
-                [$file['name'], 'https://bwprod.outdoorsecours.fr/path-to-your-logo.png'],
+                [$file['name'], 'https://images.squarespace-cdn.com/content/v1/56893684d8af102bf3e403f1/1571317878518-X3DEUWJNOFZKBZ4LKQ54/Logo_BeWitness_Full.png?format=1500w'],
                 $emailTemplate
             );
 
