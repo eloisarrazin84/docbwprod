@@ -53,42 +53,75 @@ function getAllFoldersWithDocuments() {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?= htmlspecialchars($pageTitle) ?></title>
+    <title>Mes Documents</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
         body {
             background-color: #f8f9fa;
         }
-        .folder-header {
+        .btn-back {
+            background-color: #6c757d;
+            color: white;
+            margin-bottom: 20px;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            transition: background-color 0.3s ease-in-out;
+        }
+        .btn-back:hover {
+            background-color: #5a6268;
+            text-decoration: none;
+        }
+        .accordion-button {
             background-color: #007bff;
             color: white;
-            padding: 10px;
+            font-weight: bold;
             border-radius: 5px;
-            cursor: pointer;
+            margin-bottom: 10px;
+            transition: background-color 0.3s;
         }
-        .table {
-            margin-top: 10px;
+        .accordion-button:hover {
+            background-color: #0056b3;
+        }
+        .accordion-item {
+            border: none;
+        }
+        .accordion-button:not(.collapsed) {
+            background-color: #0056b3;
+        }
+        .accordion-body {
+            padding: 10px 20px;
+            background-color: #e9ecef;
+            border-radius: 5px;
         }
         .btn-download {
             background-color: #28a745;
             color: white;
         }
+        .btn-download:hover {
+            background-color: #218838;
+        }
         .btn-delete {
             background-color: #dc3545;
             color: white;
         }
-        .btn-back {
-            background-color: #6c757d;
-            color: white;
-            margin-bottom: 20px;
+        .btn-delete:hover {
+            background-color: #c82333;
+        }
+        h1 {
+            font-size: 1.8rem;
+            font-weight: bold;
+            text-align: center;
+            color: #343a40;
+            margin-bottom: 30px;
         }
     </style>
 </head>
 <body>
 <div class="container mt-5">
     <a href="dashboard.php" class="btn btn-back"><i class="fas fa-arrow-left"></i> Retour au tableau de bord</a>
-    <h1 class="text-center"><?= htmlspecialchars($pageTitle) ?></h1>
+    <h1>Mes Documents</h1>
 
     <?php if (!empty($folders)): ?>
         <div class="accordion" id="documentsAccordion">
@@ -102,8 +135,8 @@ function getAllFoldersWithDocuments() {
                     <div id="collapse<?= $folderId ?>" class="accordion-collapse collapse" aria-labelledby="heading<?= $folderId ?>" data-bs-parent="#documentsAccordion">
                         <div class="accordion-body">
                             <?php if (!empty($folder['documents'])): ?>
-                                <table class="table table-striped table-hover">
-                                    <thead>
+                                <table class="table table-hover">
+                                    <thead class="table-light">
                                         <tr>
                                             <th>Nom du Document</th>
                                             <th>Date d'Upload</th>
@@ -116,10 +149,10 @@ function getAllFoldersWithDocuments() {
                                                 <td><i class="fas fa-file"></i> <?= htmlspecialchars($document['name']) ?></td>
                                                 <td><?= htmlspecialchars($document['upload_date']) ?></td>
                                                 <td>
-                                                    <a href="/uploads/<?= htmlspecialchars($document['name']) ?>" class="btn btn-download btn-sm" download>Télécharger</a>
+                                                    <a href="/uploads/<?= htmlspecialchars($document['name']) ?>" class="btn btn-download btn-sm" download><i class="fas fa-download"></i> Télécharger</a>
                                                     <form method="POST" action="delete_document.php" class="d-inline">
                                                         <input type="hidden" name="document_id" value="<?= $document['id'] ?>">
-                                                        <button type="submit" class="btn btn-delete btn-sm">Supprimer</button>
+                                                        <button type="submit" class="btn btn-delete btn-sm"><i class="fas fa-trash-alt"></i> Supprimer</button>
                                                     </form>
                                                 </td>
                                             </tr>
