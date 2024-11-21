@@ -1,6 +1,7 @@
 <?php
 require 'db_connect.php';
 require 'vendor/autoload.php'; // Pour les bibliothèques nécessaires
+require_once 'src/mail/email_manager.php'; // Inclusion de la fonction d'envoi des e-mails
 
 // Fonction pour téléverser un document
 function uploadDocument($folderId, $file) {
@@ -36,6 +37,26 @@ function uploadDocument($folderId, $file) {
     try {
         $stmt = $pdo->prepare("INSERT INTO documents (folder_id, user_id, file_name, file_path) VALUES (?, ?, ?, ?)");
         $stmt->execute([$folderId, $userId, $file['name'], $fileName]);
+
+        // Récupérer l'e-mail de l'utilisateur
+        $stmt = $pdo->prepare("SELECT email FROM users WHERE id = ?");
+        $stmt->execute([$userId]);
+        $user = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        if ($user && $user['email']) {
+            // Envoyer l'e-mail de notification
+            $subject = "Nouveau document disponible";
+            $message = "<p>Bonjour,</p>
+                        <p>Un nouveau document a été ajouté à votre dossier :</p>
+                        <ul>
+                            <li>Nom du document : {$file['name']}</li>
+                        </ul>
+                        <p>Veuillez vous connecter pour le consulter.</p>
+                        <p>Cordialement,</p>
+                        <p>L'équipe de gestion</p>";
+
+            sendEmailNotification($user['email'], $subject, $message);
+        }
     } catch (PDOException $e) {
         error_log("Erreur PDO : " . $e->getMessage());
         return ['success' => false, 'message' => 'Erreur : Impossible de sauvegarder le fichier dans la base de données.'];
