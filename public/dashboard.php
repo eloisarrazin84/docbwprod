@@ -12,6 +12,14 @@ if (getUserRole() === 'admin') {
     $pageTitle = "Mes Dossiers";
     $folders = listFoldersByUser($_SESSION['user_id']); // Récupère les dossiers pour l'utilisateur connecté
 }
+
+// Récupération de l'image de profil ou icône par défaut
+$stmt = $pdo->prepare("SELECT profile_image FROM users WHERE id = ?");
+$stmt->execute([$_SESSION['user_id']]);
+$userProfileImage = $stmt->fetchColumn();
+if (empty($userProfileImage)) {
+    $userProfileImage = 'https://cdn-icons-png.flaticon.com/512/149/149071.png'; // Icône utilisateur par défaut
+}
 ?>
 <!DOCTYPE html>
 <html lang="fr">
@@ -61,6 +69,30 @@ if (getUserRole() === 'admin') {
         .logout-btn:hover {
             background-color: #c82333;
         }
+        .user-profile {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-left: auto;
+            margin-right: 20px;
+        }
+        .profile-link {
+            display: inline-block;
+            border-radius: 50%;
+            overflow: hidden;
+            width: 40px;
+            height: 40px;
+            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease;
+        }
+        .profile-link:hover {
+            transform: scale(1.1);
+        }
+        .profile-image {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
         @media (max-width: 768px) {
             .card {
                 margin-bottom: 20px;
@@ -84,6 +116,13 @@ if (getUserRole() === 'admin') {
 <div class="dashboard-header">
     <img src="https://images.squarespace-cdn.com/content/v1/56893684d8af102bf3e403f1/1571317878518-X3DEUWJNOFZKBZ4LKQ54/Logo_BeWitness_Full.png?format=1500w" alt="Logo Be Witness">
     <h1><?= htmlspecialchars($pageTitle) ?></h1>
+    <!-- Badge utilisateur -->
+    <div class="user-profile">
+        <a href="profile.php" class="profile-link">
+            <img src="<?= htmlspecialchars($userProfileImage) ?>" 
+                 alt="Photo de profil" class="profile-image">
+        </a>
+    </div>
     <form action="logout.php" method="post">
         <button type="submit" class="logout-btn">Se déconnecter</button>
     </form>
@@ -167,3 +206,4 @@ if (getUserRole() === 'admin') {
 </div>
 </body>
 </html>
+
