@@ -54,6 +54,7 @@ function getAllFoldersWithDocuments() {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?= htmlspecialchars($pageTitle) ?></title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
         body {
@@ -63,8 +64,8 @@ function getAllFoldersWithDocuments() {
             background-color: #007bff;
             color: white;
             padding: 10px;
-            margin-top: 20px;
             border-radius: 5px;
+            cursor: pointer;
         }
         .table {
             margin-top: 10px;
@@ -77,46 +78,62 @@ function getAllFoldersWithDocuments() {
             background-color: #dc3545;
             color: white;
         }
+        .btn-back {
+            background-color: #6c757d;
+            color: white;
+            margin-bottom: 20px;
+        }
     </style>
 </head>
 <body>
 <div class="container mt-5">
+    <a href="dashboard.php" class="btn btn-back"><i class="fas fa-arrow-left"></i> Retour au tableau de bord</a>
     <h1 class="text-center"><?= htmlspecialchars($pageTitle) ?></h1>
 
     <?php if (!empty($folders)): ?>
-        <?php foreach ($folders as $folder): ?>
-            <div class="folder-header">
-                <h4><i class="fas fa-folder"></i> <?= htmlspecialchars($folder['name']) ?></h4>
-            </div>
-            <?php if (!empty($folder['documents'])): ?>
-                <table class="table table-striped table-hover">
-                    <thead>
-                        <tr>
-                            <th>Nom du Document</th>
-                            <th>Date d'Upload</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <?php foreach ($folder['documents'] as $document): ?>
-                            <tr>
-                                <td><i class="fas fa-file"></i> <?= htmlspecialchars($document['name']) ?></td>
-                                <td><?= htmlspecialchars($document['upload_date']) ?></td>
-                                <td>
-                                    <a href="/uploads/<?= htmlspecialchars($document['name']) ?>" class="btn btn-download btn-sm" download>Télécharger</a>
-                                    <form method="POST" action="delete_document.php" class="d-inline">
-                                        <input type="hidden" name="document_id" value="<?= $document['id'] ?>">
-                                        <button type="submit" class="btn btn-delete btn-sm">Supprimer</button>
-                                    </form>
-                                </td>
-                            </tr>
-                        <?php endforeach; ?>
-                    </tbody>
-                </table>
-            <?php else: ?>
-                <p>Aucun document dans ce dossier.</p>
-            <?php endif; ?>
-        <?php endforeach; ?>
+        <div class="accordion" id="documentsAccordion">
+            <?php foreach ($folders as $folderId => $folder): ?>
+                <div class="accordion-item">
+                    <h2 class="accordion-header" id="heading<?= $folderId ?>">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse<?= $folderId ?>" aria-expanded="false" aria-controls="collapse<?= $folderId ?>">
+                            <i class="fas fa-folder"></i> <?= htmlspecialchars($folder['name']) ?>
+                        </button>
+                    </h2>
+                    <div id="collapse<?= $folderId ?>" class="accordion-collapse collapse" aria-labelledby="heading<?= $folderId ?>" data-bs-parent="#documentsAccordion">
+                        <div class="accordion-body">
+                            <?php if (!empty($folder['documents'])): ?>
+                                <table class="table table-striped table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>Nom du Document</th>
+                                            <th>Date d'Upload</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <?php foreach ($folder['documents'] as $document): ?>
+                                            <tr>
+                                                <td><i class="fas fa-file"></i> <?= htmlspecialchars($document['name']) ?></td>
+                                                <td><?= htmlspecialchars($document['upload_date']) ?></td>
+                                                <td>
+                                                    <a href="/uploads/<?= htmlspecialchars($document['name']) ?>" class="btn btn-download btn-sm" download>Télécharger</a>
+                                                    <form method="POST" action="delete_document.php" class="d-inline">
+                                                        <input type="hidden" name="document_id" value="<?= $document['id'] ?>">
+                                                        <button type="submit" class="btn btn-delete btn-sm">Supprimer</button>
+                                                    </form>
+                                                </td>
+                                            </tr>
+                                        <?php endforeach; ?>
+                                    </tbody>
+                                </table>
+                            <?php else: ?>
+                                <p>Aucun document dans ce dossier.</p>
+                            <?php endif; ?>
+                        </div>
+                    </div>
+                </div>
+            <?php endforeach; ?>
+        </div>
     <?php else: ?>
         <p class="text-center">Aucun document disponible.</p>
     <?php endif; ?>
