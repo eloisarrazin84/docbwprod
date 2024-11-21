@@ -116,7 +116,7 @@ $documents = listDocumentsByFolder($folderId);
 <body>
 <div class="container mt-5">
     <div class="header-container">
-        <a href="folder_management.php" class="btn-back"><i class="fas fa-arrow-left"></i> Retour au Tableau de Bord</a>
+        <a href="folder_management.php" class="btn-back"><i class="fas fa-arrow-left"></i> Retour à la gestion des dossiers</a>
         <h1>Documents du Dossier</h1>
     </div>
 
