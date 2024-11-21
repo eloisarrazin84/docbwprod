@@ -119,6 +119,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             padding: 10px 20px;
             transition: background-color 0.3s ease;
             font-size: 14px;
+            margin-bottom: 20px; /* Ajoute un espace sous le bouton */
         }
         .btn-back:hover {
             background-color: #0056b3;
@@ -138,7 +139,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 </head>
 <body>
 <div class="container">
-    <a href="dashboard.php" class="btn-back mb-3"><i class="fas fa-arrow-left"></i> Retour au Tableau de Bord</a>
+    <a href="dashboard.php" class="btn-back"><i class="fas fa-arrow-left"></i> Retour au Tableau de Bord</a>
 
     <div class="card p-4">
         <h1 class="text-center">Mon Profil</h1>
