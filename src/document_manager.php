@@ -1,7 +1,7 @@
 <?php
 require 'db_connect.php';
 require 'vendor/autoload.php'; // Pour les bibliothèques nécessaires
-require_once 'src/mail/email_manager.php'; // Inclusion de la fonction d'envoi des e-mails
+require_once '/var/www/src/mail/email_manager.php'; // Inclusion de la fonction d'envoi des e-mails
 
 // Fonction pour téléverser un document
 function uploadDocument($folderId, $file) {
