@@ -44,18 +44,19 @@ function uploadDocument($folderId, $file) {
         $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
         if ($user && $user['email']) {
+            // Charger le modèle d'email HTML
+            $emailTemplate = file_get_contents('/var/www/src/mail/templates/document_notification.html');
+            
+            // Remplacer les placeholders par les valeurs dynamiques
+            $emailContent = str_replace(
+                ['{{document_name}}', '{{logo_url}}'],
+                [$file['name'], 'https://bwprod.outdoorsecours.fr/path-to-your-logo.png'],
+                $emailTemplate
+            );
+
             // Envoyer l'e-mail de notification
             $subject = "Nouveau document disponible";
-            $message = "<p>Bonjour,</p>
-                        <p>Un nouveau document a été ajouté à votre dossier :</p>
-                        <ul>
-                            <li>Nom du document : {$file['name']}</li>
-                        </ul>
-                        <p>Veuillez vous connecter pour le consulter.</p>
-                        <p>Cordialement,</p>
-                        <p>L'équipe de gestion</p>";
-
-            sendEmailNotification($user['email'], $subject, $message);
+            sendEmailNotification($user['email'], $subject, $emailContent);
         }
     } catch (PDOException $e) {
         error_log("Erreur PDO : " . $e->getMessage());
