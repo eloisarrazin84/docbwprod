@@ -84,7 +84,7 @@ $folders = isset($_POST['filter_user_id']) ? listFoldersByUser($_POST['filter_us
 <body>
 <div class="container mt-5">
     <!-- Retour au tableau de bord -->
-    <a href="dashboard.php" class="btn-back mb-3"><i class="fas fa-arrow-left"></i> Retour au Tableau de Bord</a>
+    <a href="folder_management.php" class="btn-back mb-3"><i class="fas fa-arrow-left"></i> Retour au Tableau de Bord</a>
 
     <!-- Titre -->
     <h1 class="text-center mb-4">Gestion des Dossiers</h1>
