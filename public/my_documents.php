@@ -54,24 +54,33 @@ function getAllFoldersWithDocuments() {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mes Documents</title>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
     <style>
         body {
             background-color: #f8f9fa;
         }
         .btn-back {
-            background-color: #6c757d;
+            background-color: #007bff;
             color: white;
-            margin-bottom: 20px;
-            border: none;
-            padding: 10px 20px;
+            text-decoration: none;
             border-radius: 5px;
-            transition: background-color 0.3s ease-in-out;
+            padding: 10px 20px;
+            transition: background-color 0.3s ease;
+            font-size: 14px;
         }
         .btn-back:hover {
-            background-color: #5a6268;
-            text-decoration: none;
+            background-color: #0056b3;
+        }
+        .card {
+            border-radius: 10px;
+            border: none;
+            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
+        }
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0px 6px 10px rgba(0, 0, 0, 0.15);
         }
         .accordion-button {
             background-color: #007bff;
@@ -113,17 +122,21 @@ function getAllFoldersWithDocuments() {
             font-size: 1.8rem;
             font-weight: bold;
             text-align: center;
-            color: #343a40;
+            color: #333;
             margin-bottom: 30px;
         }
     </style>
 </head>
 <body>
 <div class="container mt-5">
-    <a href="dashboard.php" class="btn btn-back"><i class="fas fa-arrow-left"></i> Retour au tableau de bord</a>
+    <!-- Bouton retour -->
+    <a href="dashboard.php" class="btn-back mb-3"><i class="fas fa-arrow-left"></i> Retour au tableau de bord</a>
+
+    <!-- Titre principal -->
     <h1>Mes Documents</h1>
 
     <?php if (!empty($folders)): ?>
+        <!-- Liste des dossiers avec documents -->
         <div class="accordion" id="documentsAccordion">
             <?php foreach ($folders as $folderId => $folder): ?>
                 <div class="accordion-item">
@@ -135,7 +148,7 @@ function getAllFoldersWithDocuments() {
                     <div id="collapse<?= $folderId ?>" class="accordion-collapse collapse" aria-labelledby="heading<?= $folderId ?>" data-bs-parent="#documentsAccordion">
                         <div class="accordion-body">
                             <?php if (!empty($folder['documents'])): ?>
-                                <table class="table table-hover">
+                                <table class="table table-striped table-hover">
                                     <thead class="table-light">
                                         <tr>
                                             <th>Nom du Document</th>
