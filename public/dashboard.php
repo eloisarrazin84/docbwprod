@@ -5,26 +5,26 @@ require '../src/folder_manager.php';
 
 requireLogin(); // Vérifie si l'utilisateur est connecté
 
+// Récupérer l'ID de l'utilisateur
+$userId = $_SESSION['user_id'];
+
 // Définir le titre de la page selon le rôle de l'utilisateur
 if (getUserRole() === 'admin') {
     $pageTitle = "Tableau de Bord Admin";
 } else {
     $pageTitle = "Mes Dossiers";
-    $folders = listFoldersByUser($_SESSION['user_id']); // Récupère les dossiers pour l'utilisateur connecté
+    $folders = listFoldersByUser($userId); // Récupère les dossiers pour l'utilisateur connecté
 }
 
 // Récupération de l'image de profil ou icône par défaut
-// Récupérer l'image de profil de l'utilisateur
 $stmt = $pdo->prepare("SELECT profile_image FROM users WHERE id = ?");
 $stmt->execute([$userId]);
 $profileImage = $stmt->fetchColumn();
 
-// Vérifier si une image de profil existe
 if ($profileImage) {
-    $profileImageUrl = '/uploads/profiles/' . $profileImage;
+    $profileImageUrl = '/uploads/profiles/' . htmlspecialchars($profileImage);
 } else {
-    // Fallback vers une icône utilisateur par défaut
-    $profileImageUrl = 'https://cdn-icons-png.flaticon.com/512/149/149071.png';
+    $profileImageUrl = 'https://cdn-icons-png.flaticon.com/512/149/149071.png'; // Icône utilisateur par défaut
 }
 ?>
 <!DOCTYPE html>
@@ -125,7 +125,7 @@ if ($profileImage) {
     <!-- Badge utilisateur -->
     <div class="user-profile">
         <a href="profile.php" class="profile-link">
-            <img src="<?= htmlspecialchars($userProfileImage) ?>" 
+            <img src="<?= htmlspecialchars($profileImageUrl) ?>" 
                  alt="Photo de profil" class="profile-image">
         </a>
     </div>
@@ -212,4 +212,3 @@ if ($profileImage) {
 </div>
 </body>
 </html>
-
