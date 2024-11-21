@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nouveau Document Disponible</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+        }
+        .email-container {
+            max-width: 600px;
+            margin: 20px auto;
+            background: #ffffff;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+        .email-header {
+            background-color: #007BFF;
+            color: #ffffff;
+            padding: 20px;
+            text-align: center;
+        }
+        .email-header img {
+            max-width: 100px;
+            margin-bottom: 10px;
+        }
+        .email-header h1 {
+            margin: 0;
+            font-size: 24px;
+        }
+        .email-body {
+            padding: 20px;
+            color: #333333;
+        }
+        .email-body p {
+            margin: 0 0 10px;
+            line-height: 1.6;
+        }
+        .email-body .document-info {
+            background-color: #f9f9f9;
+            padding: 10px;
+            border-left: 4px solid #007BFF;
+            margin-bottom: 20px;
+            border-radius: 4px;
+        }
+        .email-footer {
+            background-color: #f4f4f4;
+            text-align: center;
+            padding: 10px;
+            font-size: 12px;
+            color: #777777;
+        }
+        .email-footer a {
+            color: #007BFF;
+            text-decoration: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="email-container">
+        <div class="email-header">
+            <img src="{{logo_url}}" alt="Logo BW PROD">
+            <h1>Nouveau Document Disponible</h1>
+        </div>
+        <div class="email-body">
+            <p>Bonjour,</p>
+            <p>Un nouveau document a été ajouté à votre dossier :</p>
+            <div class="document-info">
+                <strong>Nom du document :</strong> {{document_name}}
+            </div>
+            <p>Veuillez vous connecter pour le consulter.</p>
+            <p>Cordialement,</p>
+            <p><strong>L'équipe de gestion</strong></p>
+        </div>
+        <div class="email-footer">
+            &copy; 2024 BW PROD | <a href="https://bwprod.outdoorsecours.fr">Consultez vos documents</a>
+        </div>
+    </div>
+</body>
+</html>
