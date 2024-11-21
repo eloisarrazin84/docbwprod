@@ -121,6 +121,17 @@ if (getUserRole() === 'admin') {
                 </div>
             </div>
         </div>
+        <div class="row">
+            <div class="col-md-4 col-sm-12">
+                <div class="card text-white bg-secondary mb-3 shadow">
+                    <div class="card-header text-center"><i class="fas fa-folder-open"></i> Mes Documents</div>
+                    <div class="card-body text-center">
+                        <p class="card-text">Accédez aux documents qui vous sont assignés.</p>
+                        <a href="my_documents.php" class="btn btn-light"><i class="fas fa-arrow-right"></i> Voir mes documents</a>
+                    </div>
+                </div>
+            </div>
+        </div>
     <?php else: ?>
         <!-- Tableau de bord pour l'utilisateur -->
         <h2 class="text-center mt-4">Mes Dossiers</h2>
