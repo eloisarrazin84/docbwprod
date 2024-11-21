@@ -93,6 +93,9 @@ function getAllFoldersWithDocuments() {
         .accordion-button:hover {
             background-color: #0056b3;
         }
+        .accordion-button i {
+            margin-right: 10px; /* Ajout d'espace entre l'icône et le texte */
+        }
         .accordion-item {
             border: none;
         }
