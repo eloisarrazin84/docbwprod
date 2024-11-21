@@ -45,8 +45,14 @@ function uploadDocument($folderId, $file) {
 
         if ($user && $user['email']) {
             // Charger le modèle d'email HTML
-            $emailTemplate = file_get_contents('/var/www/src/mail/templates/document_notification.html');
-            
+            $emailTemplatePath = '/var/www/src/mail/templates/document_notification.html';
+            if (file_exists($emailTemplatePath)) {
+                $emailTemplate = file_get_contents($emailTemplatePath);
+            } else {
+                error_log("Erreur : Le fichier de modèle d'email $emailTemplatePath est introuvable.");
+                return ['success' => false, 'message' => 'Erreur : Notification email impossible.'];
+            }
+
             // Remplacer les placeholders par les valeurs dynamiques
             $emailContent = str_replace(
                 ['{{document_name}}', '{{logo_url}}'],
@@ -75,6 +81,23 @@ function listDocumentsByFolder($folderId) {
     try {
         $stmt = $pdo->prepare("SELECT id, file_name, file_path, upload_date FROM documents WHERE folder_id = ?");
         $stmt->execute([$folderId]);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    } catch (PDOException $e) {
+        error_log("Erreur PDO : " . $e->getMessage());
+        return [];
+    }
+}
+
+// Fonction pour lister les documents par utilisateur
+function listDocumentsByUser($userId) {
+    global $pdo;
+    try {
+        $stmt = $pdo->prepare("
+            SELECT id, file_name, file_path, upload_date 
+            FROM documents 
+            WHERE user_id = ?
+        ");
+        $stmt->execute([$userId]);
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     } catch (PDOException $e) {
         error_log("Erreur PDO : " . $e->getMessage());
