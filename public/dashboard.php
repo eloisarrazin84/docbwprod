@@ -14,11 +14,17 @@ if (getUserRole() === 'admin') {
 }
 
 // Récupération de l'image de profil ou icône par défaut
+// Récupérer l'image de profil de l'utilisateur
 $stmt = $pdo->prepare("SELECT profile_image FROM users WHERE id = ?");
-$stmt->execute([$_SESSION['user_id']]);
-$userProfileImage = $stmt->fetchColumn();
-if (empty($userProfileImage)) {
-    $userProfileImage = 'https://cdn-icons-png.flaticon.com/512/149/149071.png'; // Icône utilisateur par défaut
+$stmt->execute([$userId]);
+$profileImage = $stmt->fetchColumn();
+
+// Vérifier si une image de profil existe
+if ($profileImage) {
+    $profileImageUrl = '/uploads/profiles/' . $profileImage;
+} else {
+    // Fallback vers une icône utilisateur par défaut
+    $profileImageUrl = 'https://cdn-icons-png.flaticon.com/512/149/149071.png';
 }
 ?>
 <!DOCTYPE html>
