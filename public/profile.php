@@ -9,10 +9,9 @@ $userId = $_SESSION['user_id'];
 $stmt = $pdo->prepare("SELECT email, profile_image FROM users WHERE id = ?");
 $stmt->execute([$userId]);
 $user = $stmt->fetch(PDO::FETCH_ASSOC);
-
-// URL par défaut pour la photo de profil
-$defaultProfileImage = 'https://cdn-icons-png.flaticon.com/512/149/149071.png';
-$profileImageUrl = $user['profile_image'] ? '/uploads/profiles/' . $user['profile_image'] : $defaultProfileImage;
+$profileImageUrl = $user['profile_image'] 
+    ? '/uploads/profiles/' . htmlspecialchars($user['profile_image']) 
+    : 'https://cdn-icons-png.flaticon.com/512/149/149071.png';
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $newEmail = $_POST['email'];
@@ -59,31 +58,23 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $stmt->execute([$newPasswordHash, $userId]);
         }
 
-        // Gestion du téléversement de la photo de profil
-        if (isset($_FILES['profile_image']) && $_FILES['profile_image']['error'] === UPLOAD_ERR_OK) {
-    $uploadDir = '/var/www/uploads/profiles/';
-    $webDir = '/uploads/profiles/'; // Chemin web vers les fichiers téléversés
-    
-    if (!is_dir($uploadDir)) {
-        mkdir($uploadDir, 0777, true);
-    }
+        // Gérer le téléchargement de la photo de profil
+        if (!empty($_FILES['profile_image']['name'])) {
+            $uploadDir = '/var/www/uploads/profiles/';
+            if (!is_dir($uploadDir)) {
+                mkdir($uploadDir, 0777, true);
+            }
 
-    // Générer un nom unique pour le fichier
-    $fileName = uniqid() . '-' . basename($_FILES['profile_image']['name']);
-    $filePath = $uploadDir . $fileName;
+            $fileName = uniqid() . '-' . basename($_FILES['profile_image']['name']);
+            $filePath = $uploadDir . $fileName;
 
-    if (move_uploaded_file($_FILES['profile_image']['tmp_name'], $filePath)) {
-        // Chemin URL de l'image
-        $profileImageUrl = $webDir . $fileName;
-
-        // Mettre à jour dans la base de données
-        $stmt = $pdo->prepare("UPDATE users SET profile_image = ? WHERE id = ?");
-        $stmt->execute([$fileName, $userId]);
-    } else {
-        $errors[] = "Une erreur s'est produite lors du téléversement de la photo de profil.";
-    }
-}
-
+            if (move_uploaded_file($_FILES['profile_image']['tmp_name'], $filePath)) {
+                $stmt = $pdo->prepare("UPDATE users SET profile_image = ? WHERE id = ?");
+                $stmt->execute([$fileName, $userId]);
+            } else {
+                $errors[] = "Erreur lors du téléchargement de l'image.";
+            }
+        }
 
         $success = true;
     }
@@ -112,6 +103,14 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             color: #333;
             margin-bottom: 20px;
         }
+        .profile-image {
+            width: 120px;
+            height: 120px;
+            object-fit: cover;
+            border-radius: 50%;
+            margin-bottom: 20px;
+            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+        }
         .btn-back {
             background-color: #007bff;
             color: white;
@@ -124,11 +123,16 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         .btn-back:hover {
             background-color: #0056b3;
         }
-        .profile-image {
-            width: 150px;
-            height: 150px;
-            border-radius: 50%;
-            object-fit: cover;
+        .form-control {
+            border-radius: 5px;
+        }
+        .btn-primary {
+            background-color: #007bff;
+            border: none;
+            transition: background-color 0.3s ease;
+        }
+        .btn-primary:hover {
+            background-color: #0056b3;
         }
     </style>
 </head>
@@ -137,8 +141,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     <a href="dashboard.php" class="btn-back mb-3"><i class="fas fa-arrow-left"></i> Retour au Tableau de Bord</a>
 
     <div class="card p-4">
-        <h1>Mon Profil</h1>
-        <div class="text-center mb-3">
+        <h1 class="text-center">Mon Profil</h1>
+        <div class="text-center">
             <img src="<?= htmlspecialchars($profileImageUrl) ?>" alt="Photo de profil" class="profile-image">
         </div>
 
@@ -177,9 +181,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             </div>
             <div class="mb-3">
                 <label for="profile_image" class="form-label">Changer de photo de profil</label>
-                <input type="file" name="profile_image" id="profile_image" class="form-control">
+                <input type="file" class="form-control" id="profile_image" name="profile_image" accept="image/*">
             </div>
-            <button type="submit" class="btn btn-primary">Mettre à jour</button>
+            <button type="submit" class="btn btn-primary w-100">Mettre à jour</button>
         </form>
     </div>
 </div>
