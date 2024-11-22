@@ -95,7 +95,7 @@ function getWelcomeEmailTemplate($name, $email, $temporaryPassword, $logoUrl = '
                 </div>
                 <p>Veuillez vous connecter à votre compte et modifier votre mot de passe depuis votre profil :</p>
                 <p>
-                    <a href='https://bwprod.outdoorsecours.fr/login' target='_blank'>Se connecter</a>
+                    <a href='https://bwprod.outdoorsecours.fr/login.php' target='_blank'>Se connecter</a>
                 </p>
                 <p>Cordialement,</p>
                 <p><strong>L'équipe de gestion</strong></p>
