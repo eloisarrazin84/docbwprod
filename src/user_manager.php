@@ -43,7 +43,7 @@ function sendWelcomeEmail($email, $name, $temporaryPassword) {
         $name,
         $email,
         $temporaryPassword,
-        'https://example.com/logo.png' // URL du logo
+        'https://images.squarespace-cdn.com/content/v1/56893684d8af102bf3e403f1/1571317878518-X3DEUWJNOFZKBZ4LKQ54/Logo_BeWitness_Full.png?format=1500w' // URL du logo
     );
 
     // Envoyer l'email
