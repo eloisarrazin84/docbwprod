@@ -1,7 +1,7 @@
 <?php
 require 'db_connect.php';
 require '/var/www/src/mail/templates/welcome_email.php'; // Charger le template d'email
-require_once '/var/www/src/email_manager.php'; // Inclure la fonction d'envoi d'email
+require_once '/var/www/src/mail/email_manager.php'; // Inclusion de la fonction d'envoi des e-mails
 
 function createUser($name, $email, $password, $role = 'user') {
     global $pdo;
