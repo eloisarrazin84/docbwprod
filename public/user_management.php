@@ -2,10 +2,16 @@
 require '../src/db_connect.php';
 require '../src/user_manager.php';
 
-if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['create_user'])) {
-    createUser($_POST['name'], $_POST['email'], $_POST['password'], $_POST['role']);
+// Gérer les actions du formulaire
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    if (isset($_POST['create_user'])) {
+        createUser($_POST['name'], $_POST['email'], $_POST['password'], $_POST['role']);
+    } elseif (isset($_POST['delete_user'])) {
+        deleteUser(intval($_POST['user_id']));
+    }
 }
 
+// Récupérer la liste des utilisateurs
 $users = listUsers();
 ?>
 <!DOCTYPE html>
@@ -49,6 +55,18 @@ $users = listUsers();
             font-size: 1.8rem;
             font-weight: bold;
             color: #333;
+        }
+        .btn-delete {
+            background-color: #dc3545;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+        .btn-delete:hover {
+            background-color: #c82333;
         }
         @media (max-width: 768px) {
             .table thead {
@@ -120,6 +138,7 @@ $users = listUsers();
                             <th>Nom</th>
                             <th>E-mail</th>
                             <th>Rôle</th>
+                            <th>Actions</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -130,11 +149,17 @@ $users = listUsers();
                                     <td data-label="Nom"><?= htmlspecialchars($user['name']) ?></td>
                                     <td data-label="E-mail"><?= htmlspecialchars($user['email']) ?></td>
                                     <td data-label="Rôle"><?= htmlspecialchars($user['role']) ?></td>
+                                    <td data-label="Actions">
+                                        <form method="POST" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer cet utilisateur ?');" style="display:inline;">
+                                            <input type="hidden" name="user_id" value="<?= htmlspecialchars($user['id']) ?>">
+                                            <button type="submit" name="delete_user" class="btn-delete"><i class="fas fa-trash"></i> Supprimer</button>
+                                        </form>
+                                    </td>
                                 </tr>
                             <?php endforeach; ?>
                         <?php else: ?>
                             <tr>
-                                <td colspan="4" class="text-center">Aucun utilisateur trouvé.</td>
+                                <td colspan="5" class="text-center">Aucun utilisateur trouvé.</td>
                             </tr>
                         <?php endif; ?>
                     </tbody>
