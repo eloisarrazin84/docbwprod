@@ -34,6 +34,20 @@ function getUserById($id) {
     return $stmt->fetch(PDO::FETCH_ASSOC);
 }
 
+// Fonction pour supprimer un utilisateur
+function deleteUser($userId) {
+    global $pdo;
+    try {
+        // Supprimer l'utilisateur par ID
+        $stmt = $pdo->prepare("DELETE FROM users WHERE id = ?");
+        $stmt->execute([$userId]);
+        return true;
+    } catch (PDOException $e) {
+        error_log("Erreur lors de la suppression de l'utilisateur : " . $e->getMessage());
+        return false;
+    }
+}
+
 // Fonction pour envoyer un email de bienvenue
 function sendWelcomeEmail($email, $name, $temporaryPassword) {
     $subject = "Bienvenue sur notre plateforme";
