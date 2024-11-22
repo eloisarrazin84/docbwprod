@@ -1,7 +1,6 @@
 <?php
 require 'db_connect.php';
 require '/var/www/src/mail/templates/welcome_email.php'; // Charger le template d'email
-require_once 'mail_helper.php'; // Assurez-vous que cette fonction contient la fonction `sendEmail`
 
 function createUser($identifier, $name, $email, $password, $role = 'user') {
     global $pdo;
