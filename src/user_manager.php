@@ -1,11 +1,25 @@
 <?php
 require 'db_connect.php';
+require '/srv/mail/templates/welcome_email.php'; // Charger le template d'email
+require_once 'mail_helper.php'; // Assurez-vous que cette fonction contient la fonction `sendEmail`
 
 function createUser($identifier, $name, $email, $password, $role = 'user') {
     global $pdo;
+
+    // Hasher le mot de passe
     $hashedPassword = password_hash($password, PASSWORD_BCRYPT);
-    $stmt = $pdo->prepare("INSERT INTO users (identifier, name, email, password, role) VALUES (?, ?, ?, ?, ?)");
-    $stmt->execute([$identifier, $name, $email, $hashedPassword, $role]);
+
+    try {
+        // Insérer l'utilisateur dans la base de données
+        $stmt = $pdo->prepare("INSERT INTO users (identifier, name, email, password, role) VALUES (?, ?, ?, ?, ?)");
+        $stmt->execute([$identifier, $name, $email, $hashedPassword, $role]);
+
+        // Envoyer un email à l'utilisateur avec ses identifiants
+        sendWelcomeEmail($email, $name, $password);
+    } catch (PDOException $e) {
+        error_log("Erreur lors de la création de l'utilisateur : " . $e->getMessage());
+        throw new Exception("Impossible de créer l'utilisateur. Veuillez réessayer.");
+    }
 }
 
 function listUsers() {
@@ -19,5 +33,25 @@ function getUserById($id) {
     $stmt = $pdo->prepare("SELECT id, name, email, role FROM users WHERE id = ?");
     $stmt->execute([$id]);
     return $stmt->fetch(PDO::FETCH_ASSOC);
+}
+
+// Fonction pour envoyer un email de bienvenue
+function sendWelcomeEmail($email, $name, $temporaryPassword) {
+    $subject = "Bienvenue sur notre plateforme";
+    
+    // Charger le contenu de l'email depuis le template
+    $emailContent = getWelcomeEmailTemplate(
+        $name,
+        $email,
+        $temporaryPassword,
+        'https://example.com/logo.png' // URL du logo
+    );
+
+    // Envoyer l'email
+    try {
+        sendEmail($email, $subject, $emailContent);
+    } catch (Exception $e) {
+        error_log("Erreur lors de l'envoi de l'email de bienvenue : " . $e->getMessage());
+    }
 }
 ?>
