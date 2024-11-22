@@ -135,6 +135,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         .btn-primary:hover {
             background-color: #0056b3;
         }
+        .note {
+            font-size: 0.9rem;
+            color: #6c757d;
+        }
     </style>
 </head>
 <body>
@@ -170,10 +174,17 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 <label for="email" class="form-label">Adresse E-mail</label>
                 <input type="email" class="form-control" id="email" name="email" value="<?= htmlspecialchars($user['email']) ?>" required>
             </div>
-            <div class="mb-3">
+
+            <!-- Section clarifiée pour Mot de Passe Actuel -->
+            <div class="border border-primary rounded p-3 mb-3">
                 <label for="current_password" class="form-label">Mot de Passe Actuel</label>
                 <input type="password" class="form-control" id="current_password" name="current_password" placeholder="Votre mot de passe actuel" required>
+                <p class="note mt-2">
+                    <i class="fas fa-info-circle"></i>
+                    Veuillez saisir votre mot de passe actuel pour confirmer les modifications de votre profil.
+                </p>
             </div>
+
             <div class="row">
                 <div class="col-md-6 mb-3">
                     <label for="new_password" class="form-label">Nouveau Mot de Passe</label>
