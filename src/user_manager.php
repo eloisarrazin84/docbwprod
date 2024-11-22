@@ -48,7 +48,7 @@ function sendWelcomeEmail($email, $name, $temporaryPassword) {
 
     // Envoyer l'email
     try {
-        sendEmail($email, $subject, $emailContent);
+        sendEmailNotification($email, $subject, $emailContent);
     } catch (Exception $e) {
         error_log("Erreur lors de l'envoi de l'email de bienvenue : " . $e->getMessage());
     }
