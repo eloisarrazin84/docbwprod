@@ -53,4 +53,23 @@ function sendWelcomeEmail($email, $name, $temporaryPassword) {
         throw new Exception("Impossible d'envoyer l'email de bienvenue.");
     }
 }
+
+// Fonction pour supprimer un utilisateur
+function deleteUser($id) {
+    global $pdo;
+
+    try {
+        $stmt = $pdo->prepare("DELETE FROM users WHERE id = ?");
+        $stmt->execute([$id]);
+
+        if ($stmt->rowCount() > 0) {
+            return true; // Suppression réussie
+        } else {
+            return false; // Aucun utilisateur supprimé
+        }
+    } catch (PDOException $e) {
+        error_log("Erreur lors de la suppression de l'utilisateur : " . $e->getMessage());
+        throw new Exception("Impossible de supprimer l'utilisateur.");
+    }
+}
 ?>
