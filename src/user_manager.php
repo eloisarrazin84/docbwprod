@@ -1,6 +1,7 @@
 <?php
 require 'db_connect.php';
 require '/var/www/src/mail/templates/welcome_email.php'; // Charger le template d'email
+require_once '/var/www/src/email_manager.php'; // Inclure la fonction d'envoi d'email
 
 function createUser($name, $email, $password, $role = 'user') {
     global $pdo;
@@ -34,24 +35,10 @@ function getUserById($id) {
     return $stmt->fetch(PDO::FETCH_ASSOC);
 }
 
-// Fonction pour supprimer un utilisateur
-function deleteUser($userId) {
-    global $pdo;
-    try {
-        // Supprimer l'utilisateur par ID
-        $stmt = $pdo->prepare("DELETE FROM users WHERE id = ?");
-        $stmt->execute([$userId]);
-        return true;
-    } catch (PDOException $e) {
-        error_log("Erreur lors de la suppression de l'utilisateur : " . $e->getMessage());
-        return false;
-    }
-}
-
 // Fonction pour envoyer un email de bienvenue
 function sendWelcomeEmail($email, $name, $temporaryPassword) {
     $subject = "Bienvenue sur notre plateforme";
-    
+
     // Charger le contenu de l'email depuis le template
     $emailContent = getWelcomeEmailTemplate(
         $name,
@@ -60,11 +47,10 @@ function sendWelcomeEmail($email, $name, $temporaryPassword) {
         'https://images.squarespace-cdn.com/content/v1/56893684d8af102bf3e403f1/1571317878518-X3DEUWJNOFZKBZ4LKQ54/Logo_BeWitness_Full.png?format=1500w' // URL du logo
     );
 
-    // Envoyer l'email
-    try {
-        sendEmailNotification($email, $subject, $emailContent);
-    } catch (Exception $e) {
-        error_log("Erreur lors de l'envoi de l'email de bienvenue : " . $e->getMessage());
+    // Envoyer l'email avec `email_manager.php`
+    if (!sendEmailNotification($email, $subject, $emailContent)) {
+        error_log("Erreur lors de l'envoi de l'email de bienvenue à $email");
+        throw new Exception("Impossible d'envoyer l'email de bienvenue.");
     }
 }
 ?>
