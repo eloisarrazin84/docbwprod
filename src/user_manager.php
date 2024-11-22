@@ -2,7 +2,7 @@
 require 'db_connect.php';
 require '/var/www/src/mail/templates/welcome_email.php'; // Charger le template d'email
 
-function createUser($identifier, $name, $email, $password, $role = 'user') {
+function createUser($name, $email, $password, $role = 'user') {
     global $pdo;
 
     // Hasher le mot de passe
@@ -10,8 +10,8 @@ function createUser($identifier, $name, $email, $password, $role = 'user') {
 
     try {
         // Insérer l'utilisateur dans la base de données
-        $stmt = $pdo->prepare("INSERT INTO users (identifier, name, email, password, role) VALUES (?, ?, ?, ?, ?)");
-        $stmt->execute([$identifier, $name, $email, $hashedPassword, $role]);
+        $stmt = $pdo->prepare("INSERT INTO users (name, email, password, role) VALUES (?, ?, ?, ?)");
+        $stmt->execute([$name, $email, $hashedPassword, $role]);
 
         // Envoyer un email à l'utilisateur avec ses identifiants
         sendWelcomeEmail($email, $name, $password);
@@ -23,7 +23,7 @@ function createUser($identifier, $name, $email, $password, $role = 'user') {
 
 function listUsers() {
     global $pdo;
-    $stmt = $pdo->query("SELECT id, identifier, name, email, role FROM users");
+    $stmt = $pdo->query("SELECT id, name, email, role FROM users");
     return $stmt->fetchAll(PDO::FETCH_ASSOC);
 }
 
