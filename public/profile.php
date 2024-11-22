@@ -119,7 +119,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             padding: 10px 20px;
             transition: background-color 0.3s ease;
             font-size: 14px;
-            margin-bottom: 20px; /* Ajoute un espace sous le bouton */
+            margin-bottom: 20px;
         }
         .btn-back:hover {
             background-color: #0056b3;
@@ -138,17 +138,19 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     </style>
 </head>
 <body>
-<div class="container">
+<div class="container mt-5">
     <a href="dashboard.php" class="btn-back"><i class="fas fa-arrow-left"></i> Retour au Tableau de Bord</a>
 
     <div class="card p-4">
         <h1 class="text-center">Mon Profil</h1>
         <div class="text-center">
-            <img src="<?= htmlspecialchars($profileImageUrl) ?>" alt="Photo de profil" class="profile-image">
+            <img src="<?= htmlspecialchars($profileImageUrl) ?>" id="profile-preview" alt="Photo de profil" class="profile-image">
+            <p class="text-muted small">Cliquez sur "Changer de photo" pour mettre à jour votre image</p>
         </div>
 
         <?php if (!empty($errors)): ?>
             <div class="alert alert-danger">
+                <i class="fas fa-exclamation-circle"></i>
                 <ul>
                     <?php foreach ($errors as $error): ?>
                         <li><?= htmlspecialchars($error) ?></li>
@@ -159,7 +161,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
         <?php if (isset($success) && $success): ?>
             <div class="alert alert-success">
-                Votre profil a été mis à jour avec succès.
+                <i class="fas fa-check-circle"></i> Votre profil a été mis à jour avec succès.
             </div>
         <?php endif; ?>
 
@@ -170,24 +172,40 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             </div>
             <div class="mb-3">
                 <label for="current_password" class="form-label">Mot de Passe Actuel</label>
-                <input type="password" class="form-control" id="current_password" name="current_password" required>
+                <input type="password" class="form-control" id="current_password" name="current_password" placeholder="Votre mot de passe actuel" required>
+            </div>
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label for="new_password" class="form-label">Nouveau Mot de Passe</label>
+                    <input type="password" class="form-control" id="new_password" name="new_password" placeholder="Nouveau mot de passe (facultatif)">
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label for="confirm_password" class="form-label">Confirmer le Nouveau Mot de Passe</label>
+                    <input type="password" class="form-control" id="confirm_password" name="confirm_password" placeholder="Confirmez le mot de passe">
+                </div>
             </div>
             <div class="mb-3">
-                <label for="new_password" class="form-label">Nouveau Mot de Passe</label>
-                <input type="password" class="form-control" id="new_password" name="new_password" placeholder="Laisser vide pour conserver l'ancien">
-            </div>
-            <div class="mb-3">
-                <label for="confirm_password" class="form-label">Confirmer le Nouveau Mot de Passe</label>
-                <input type="password" class="form-control" id="confirm_password" name="confirm_password" placeholder="Laisser vide pour conserver l'ancien">
-            </div>
-            <div class="mb-3">
-                <label for="profile_image" class="form-label">Changer de photo de profil</label>
+                <label for="profile_image" class="form-label">Changer de Photo de Profil</label>
                 <input type="file" class="form-control" id="profile_image" name="profile_image" accept="image/*">
             </div>
-            <button type="submit" class="btn btn-primary w-100">Mettre à jour</button>
+            <div class="text-center mt-4">
+                <button type="reset" class="btn btn-outline-secondary me-2">Réinitialiser</button>
+                <button type="submit" class="btn btn-primary">Mettre à jour</button>
+            </div>
         </form>
     </div>
 </div>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    document.getElementById('profile_image').addEventListener('change', function(event) {
+        const file = event.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                document.getElementById('profile-preview').src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
+    });
+</script>
 </body>
 </html>
