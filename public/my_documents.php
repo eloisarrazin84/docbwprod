@@ -8,18 +8,28 @@ requireLogin(); // Vérifie si l'utilisateur est connecté
 
 $pageTitle = "Mes Documents";
 
-// Récupérer tous les dossiers avec leurs documents
-$folders = getAllFoldersWithDocuments();
+// Récupérer l'utilisateur connecté
+$userId = $_SESSION['user_id'];
+$userRole = getUserRole(); // Récupère le rôle de l'utilisateur connecté
 
-function getAllFoldersWithDocuments() {
+// Récupérer tous les dossiers avec leurs documents pour l'utilisateur connecté
+$folders = getAllFoldersWithDocuments($userId, $userRole);
+
+// Fonction pour récupérer les dossiers et leurs documents
+function getAllFoldersWithDocuments($userId, $userRole) {
     global $pdo;
     try {
-        $stmt = $pdo->prepare("
+        // Si l'utilisateur est admin, il voit tous ses propres dossiers
+        $query = "
             SELECT f.id AS folder_id, f.name AS folder_name, d.id AS document_id, d.file_name, d.upload_date 
             FROM folders f
             LEFT JOIN documents d ON f.id = d.folder_id
+            WHERE f.user_id = :userId
             ORDER BY f.name ASC, d.upload_date DESC
-        ");
+        ";
+
+        $stmt = $pdo->prepare($query);
+        $stmt->bindParam(':userId', $userId, PDO::PARAM_INT);
         $stmt->execute();
         $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
@@ -94,7 +104,7 @@ function getAllFoldersWithDocuments() {
             background-color: #0056b3;
         }
         .accordion-button i {
-            margin-right: 10px; /* Ajout d'espace entre l'icône et le texte */
+            margin-right: 10px;
         }
         .accordion-item {
             border: none;
@@ -132,14 +142,11 @@ function getAllFoldersWithDocuments() {
 </head>
 <body>
 <div class="container mt-5">
-    <!-- Bouton retour -->
     <a href="dashboard.php" class="btn-back mb-3"><i class="fas fa-arrow-left"></i> Retour au tableau de bord</a>
 
-    <!-- Titre principal -->
     <h1>Mes Documents</h1>
 
     <?php if (!empty($folders)): ?>
-        <!-- Liste des dossiers avec documents -->
         <div class="accordion" id="documentsAccordion">
             <?php foreach ($folders as $folderId => $folder): ?>
                 <div class="accordion-item">
@@ -166,10 +173,6 @@ function getAllFoldersWithDocuments() {
                                                 <td><?= htmlspecialchars($document['upload_date']) ?></td>
                                                 <td>
                                                     <a href="/uploads/<?= htmlspecialchars($document['name']) ?>" class="btn btn-download btn-sm" download><i class="fas fa-download"></i> Télécharger</a>
-                                                    <form method="POST" action="delete_document.php" class="d-inline">
-                                                        <input type="hidden" name="document_id" value="<?= $document['id'] ?>">
-                                                        <button type="submit" class="btn btn-delete btn-sm"><i class="fas fa-trash-alt"></i> Supprimer</button>
-                                                    </form>
                                                 </td>
                                             </tr>
                                         <?php endforeach; ?>
