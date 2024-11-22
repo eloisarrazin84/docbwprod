@@ -17,6 +17,10 @@ function sendEmailNotification($toEmail, $subject, $message) {
         $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
         $mail->Port = 587;
 
+        // Configuration de l'encodage
+        $mail->CharSet = 'UTF-8';
+        $mail->Encoding = 'base64';
+
         // Configuration de l'expéditeur et du destinataire
         $mail->setFrom('eloi@bewitness.fr', 'Documents BW PROD');
         $mail->addAddress($toEmail);
