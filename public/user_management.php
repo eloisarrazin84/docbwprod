@@ -3,7 +3,7 @@ require '../src/db_connect.php';
 require '../src/user_manager.php';
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['create_user'])) {
-    createUser($_POST['identifier'], $_POST['name'], $_POST['email'], $_POST['password'], $_POST['role']);
+    createUser($_POST['name'], $_POST['email'], $_POST['password'], $_POST['role']);
 }
 
 $users = listUsers();
