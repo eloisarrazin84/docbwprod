@@ -2,6 +2,15 @@
 require '../src/db_connect.php';
 require '../src/folder_manager.php';
 require '../src/user_manager.php';
+require '../src/session_manager.php';
+
+requireLogin(); // Vérifie si l'utilisateur est connecté
+
+// Vérifier si l'utilisateur est un administrateur
+if (getUserRole() !== 'admin') {
+    header('Location: dashboard.php'); // Redirige les utilisateurs non autorisés
+    exit();
+}
 
 // Récupérer tous les utilisateurs pour la liste déroulante
 $users = listUsers();
@@ -9,15 +18,18 @@ $users = listUsers();
 // Gestion des actions
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     if (isset($_POST['create_folder'])) {
+        // Création d'un dossier
         createFolder($_POST['user_id'], $_POST['folder_name']);
     } elseif (isset($_POST['update_folder'])) {
+        // Mise à jour du dossier
         updateFolder($_POST['folder_id'], $_POST['new_name']);
     } elseif (isset($_POST['delete_folder'])) {
+        // Suppression du dossier
         deleteFolder($_POST['folder_id']);
     }
 }
 
-// Récupérer les dossiers
+// Récupérer les dossiers avec ou sans filtre utilisateur
 $folders = isset($_POST['filter_user_id']) ? listFoldersByUser($_POST['filter_user_id']) : listFoldersByUser();
 ?>
 <!DOCTYPE html>
