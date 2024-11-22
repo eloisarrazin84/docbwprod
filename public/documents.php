@@ -15,6 +15,9 @@ if (!$folderId) {
     exit();
 }
 
+// Définir le lien de retour en fonction du rôle
+$returnLink = $userRole === 'admin' ? "folder_management.php" : "dashboard.php";
+
 // Gestion des actions
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     if (isset($_POST['upload_document']) && $userRole === 'admin') {
@@ -116,7 +119,7 @@ $documents = listDocumentsByFolder($folderId);
 <body>
 <div class="container mt-5">
     <div class="header-container">
-        <a href="folder_management.php" class="btn-back"><i class="fas fa-arrow-left"></i> Retour à la gestion des dossiers</a>
+        <a href="<?= htmlspecialchars($returnLink) ?>" class="btn-back"><i class="fas fa-arrow-left"></i> Retour</a>
         <h1>Documents du Dossier</h1>
     </div>
 
