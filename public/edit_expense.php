@@ -1,68 +1,52 @@
 <?php
-session_start(); // Démarre la session
+session_start();
 require '../src/session_manager.php';
 require '../src/db_connect.php';
 require '../src/expense_manager.php';
 
-// Vérifie si l'utilisateur est connecté
-if (!isset($_SESSION['user_id']) || empty($_SESSION['user_id'])) {
-    error_log("User not logged in or session not initialized."); // Log d'erreur
+requireLogin(); // Vérifie si l'utilisateur est connecté
+
+// Redirige si l'utilisateur n'est pas connecté ou si user_id est introuvable
+if (!isset($_SESSION['user_id'])) {
     header('Location: login.php');
     exit();
 }
 
-$userId = intval($_SESSION['user_id']); // Définit l'utilisateur connecté
-error_log("Current User ID: $userId"); // Log pour vérifier l'ID utilisateur
+$userId = $_SESSION['user_id']; // Définit l'utilisateur connecté
 
-// Vérifie si une ID d'expense est fournie et valide
+// Vérifie si une ID d'expense est fournie
 if (!isset($_GET['id']) || !is_numeric($_GET['id'])) {
-    error_log("Invalid or missing expense ID in GET parameter."); // Log d'erreur
     header('Location: user_dashboard_expenses.php');
     exit();
 }
 
 $expenseId = intval($_GET['id']);
-error_log("Expense ID provided: $expenseId"); // Log pour vérifier l'ID de la dépense
-
-// Récupère les détails de la dépense
 $expense = getExpenseDetails($expenseId);
+
+// Vérifie si la dépense existe
 if (!$expense) {
-    error_log("Expense ID $expenseId not found in database."); // Log si la dépense est introuvable
-    header('Location: user_dashboard_expenses.php');
-    exit();
+    die("Erreur : Cette note de frais n'existe pas.");
 }
 
 // Vérifie si la dépense appartient bien à l'utilisateur connecté
-if ($expense['user_id'] !== $userId) {
-    error_log("Expense ID $expenseId does not belong to User ID $userId."); // Log en cas de mismatch
-    header('Location: user_dashboard_expenses.php');
-    exit();
+if ($expense['user_id'] != $userId) {
+    die("Erreur : Vous n'êtes pas autorisé à modifier cette note de frais.");
 }
 
-$error = ''; // Variable pour stocker les messages d'erreur
-
 // Gestion des mises à jour
+$error = "";
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $description = trim($_POST['description'] ?? '');
-    $amount = floatval($_POST['amount'] ?? 0);
-    $category = trim($_POST['category'] ?? '');
-    $expenseDate = $_POST['expense_date'] ?? '';
-    $comment = trim($_POST['comment'] ?? '');
+    $description = trim($_POST['description']);
+    $amount = floatval($_POST['amount']);
+    $category = trim($_POST['category']);
+    $expenseDate = $_POST['expense_date'];
+    $comment = trim($_POST['comment']);
 
-    // Valide les champs nécessaires
-    if (empty($description) || $amount <= 0 || empty($category) || empty($expenseDate)) {
-        $error = "Tous les champs obligatoires doivent être remplis.";
-        error_log("Validation failed: Description: $description, Amount: $amount, Category: $category, Expense Date: $expenseDate");
+    if (updateExpense($expenseId, $description, $amount, $category, $expenseDate, $comment)) {
+        header('Location: user_dashboard_expenses.php');
+        exit();
     } else {
-        // Met à jour la note de frais
-        if (updateExpense($expenseId, $description, $amount, $category, $expenseDate, $comment)) {
-            error_log("Expense ID $expenseId updated successfully."); // Log de succès
-            header('Location: user_dashboard_expenses.php');
-            exit();
-        } else {
-            $error = "Erreur lors de la mise à jour de la note de frais.";
-            error_log("Failed to update Expense ID $expenseId."); // Log d'erreur
-        }
+        $error = "Erreur lors de la mise à jour de la note de frais.";
     }
 }
 ?>
