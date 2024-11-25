@@ -11,7 +11,7 @@ function createExpense($userId, $description, $amount, $category, $receiptPath =
         $stmt->execute([$userId, $description, $amount, $category, $receiptPath]);
         return true;
     } catch (PDOException $e) {
-        error_log("Erreur PDO : " . $e->getMessage());
+        error_log("Erreur PDO (createExpense) : " . $e->getMessage());
         return false;
     }
 }
@@ -23,7 +23,32 @@ function listExpensesByUser($userId) {
         $stmt->execute([$userId]);
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     } catch (PDOException $e) {
-        error_log("Erreur PDO : " . $e->getMessage());
+        error_log("Erreur PDO (listExpensesByUser) : " . $e->getMessage());
+        return [];
+    }
+}
+
+function listAllExpenses() {
+    global $pdo;
+    try {
+        $stmt = $pdo->query("
+            SELECT 
+                e.id, 
+                e.description, 
+                e.amount, 
+                e.category, 
+                e.status, 
+                e.date_submitted, 
+                e.receipt_path, 
+                u.name AS user_name, 
+                u.email AS user_email
+            FROM expense_notes e
+            INNER JOIN users u ON e.user_id = u.id
+            ORDER BY e.date_submitted DESC
+        ");
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    } catch (PDOException $e) {
+        error_log("Erreur PDO (listAllExpenses) : " . $e->getMessage());
         return [];
     }
 }
@@ -35,7 +60,20 @@ function updateExpenseStatus($expenseId, $status) {
         $stmt->execute([$status, $expenseId]);
         return true;
     } catch (PDOException $e) {
-        error_log("Erreur PDO : " . $e->getMessage());
+        error_log("Erreur PDO (updateExpenseStatus) : " . $e->getMessage());
         return false;
     }
 }
+
+function getExpenseById($expenseId) {
+    global $pdo;
+    try {
+        $stmt = $pdo->prepare("SELECT * FROM expense_notes WHERE id = ?");
+        $stmt->execute([$expenseId]);
+        return $stmt->fetch(PDO::FETCH_ASSOC);
+    } catch (PDOException $e) {
+        error_log("Erreur PDO (getExpenseById) : " . $e->getMessage());
+        return null;
+    }
+}
+?>
