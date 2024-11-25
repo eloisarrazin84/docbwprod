@@ -23,8 +23,14 @@ if (!isset($_GET['id']) || !is_numeric($_GET['id'])) {
 $expenseId = intval($_GET['id']);
 $expense = getExpenseDetails($expenseId);
 
+// Vérifie si la dépense existe
+if (!$expense) {
+    header('Location: user_dashboard_expenses.php');
+    exit();
+}
+
 // Vérifie si la dépense appartient bien à l'utilisateur connecté
-if ($expense['user_id'] != $userId) {
+if ($expense['user_id'] !== $userId) {
     header('Location: user_dashboard_expenses.php');
     exit();
 }
@@ -34,19 +40,18 @@ $error = '';
 $success = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $description = trim($_POST['description']);
-    $amount = floatval($_POST['amount']);
-    $category = trim($_POST['category']);
-    $expenseDate = $_POST['expense_date'];
-    $comment = trim($_POST['comment']);
+    $description = trim($_POST['description'] ?? '');
+    $amount = floatval($_POST['amount'] ?? 0);
+    $category = trim($_POST['category'] ?? '');
+    $expenseDate = $_POST['expense_date'] ?? '';
+    $comment = trim($_POST['comment'] ?? '');
 
     // Validation des champs obligatoires
-    if (empty($description) || empty($amount) || empty($category) || empty($expenseDate)) {
+    if (empty($description) || $amount <= 0 || empty($category) || empty($expenseDate)) {
         $error = "Tous les champs obligatoires doivent être remplis.";
     } else {
         // Mise à jour de la dépense
         if (updateExpense($expenseId, $description, $amount, $category, $expenseDate, $comment)) {
-            $success = "La note de frais a été mise à jour avec succès.";
             header('Location: user_dashboard_expenses.php');
             exit();
         } else {
@@ -105,28 +110,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <form method="POST">
         <div class="mb-3">
             <label for="description" class="form-label">Description <span class="text-danger">*</span></label>
-            <input type="text" class="form-control" id="description" name="description" value="<?= htmlspecialchars($expense['description']) ?>" required>
+            <input type="text" class="form-control" id="description" name="description" value="<?= htmlspecialchars($expense['description'] ?? '') ?>" required>
         </div>
         <div class="mb-3">
             <label for="amount" class="form-label">Montant (€) <span class="text-danger">*</span></label>
-            <input type="number" class="form-control" id="amount" name="amount" step="0.01" value="<?= htmlspecialchars($expense['amount']) ?>" required>
+            <input type="number" class="form-control" id="amount" name="amount" step="0.01" value="<?= htmlspecialchars($expense['amount'] ?? 0) ?>" required>
         </div>
         <div class="mb-3">
             <label for="category" class="form-label">Catégorie <span class="text-danger">*</span></label>
             <select id="category" name="category" class="form-select" required>
-                <option value="transport" <?= $expense['category'] === 'transport' ? 'selected' : '' ?>>Transport</option>
-                <option value="repas" <?= $expense['category'] === 'repas' ? 'selected' : '' ?>>Repas</option>
-                <option value="hebergement" <?= $expense['category'] === 'hebergement' ? 'selected' : '' ?>>Hébergement</option>
-                <option value="autre" <?= $expense['category'] === 'autre' ? 'selected' : '' ?>>Autre</option>
+                <option value="transport" <?= ($expense['category'] ?? '') === 'transport' ? 'selected' : '' ?>>Transport</option>
+                <option value="repas" <?= ($expense['category'] ?? '') === 'repas' ? 'selected' : '' ?>>Repas</option>
+                <option value="hebergement" <?= ($expense['category'] ?? '') === 'hebergement' ? 'selected' : '' ?>>Hébergement</option>
+                <option value="autre" <?= ($expense['category'] ?? '') === 'autre' ? 'selected' : '' ?>>Autre</option>
             </select>
         </div>
         <div class="mb-3">
             <label for="expense_date" class="form-label">Date de la Dépense <span class="text-danger">*</span></label>
-            <input type="date" class="form-control" id="expense_date" name="expense_date" value="<?= htmlspecialchars($expense['expense_date']) ?>" required>
+            <input type="date" class="form-control" id="expense_date" name="expense_date" value="<?= htmlspecialchars($expense['expense_date'] ?? '') ?>" required>
         </div>
         <div class="mb-3">
             <label for="comment" class="form-label">Commentaire</label>
-            <textarea id="comment" name="comment" class="form-control"><?= htmlspecialchars($expense['comment']) ?></textarea>
+            <textarea id="comment" name="comment" class="form-control"><?= htmlspecialchars($expense['comment'] ?? '') ?></textarea>
         </div>
         <button type="submit" class="btn btn-primary">Mettre à jour</button>
     </form>
