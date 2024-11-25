@@ -1,5 +1,5 @@
 <?php
-session_start();
+session_start(); // Démarre la session
 require '../src/session_manager.php';
 require '../src/db_connect.php';
 require '../src/expense_manager.php';
@@ -8,36 +8,46 @@ requireLogin(); // Vérifie si l'utilisateur est connecté
 
 // Vérifie si l'utilisateur est connecté
 if (!isset($_SESSION['user_id'])) {
-    die("Erreur : Vous devez être connecté pour accéder à cette page.");
+    header('Location: login.php');
+    exit();
 }
 
 $userId = $_SESSION['user_id']; // Définit l'utilisateur connecté
+error_log("Current User ID: $userId");
 
 // Vérifie si une ID d'expense est fournie
 if (!isset($_GET['id']) || !is_numeric($_GET['id'])) {
-    die("Erreur : L'ID de la note de frais est manquant ou invalide.");
+    error_log("Erreur : L'ID de la dépense n'est pas valide.");
+    header('Location: user_dashboard_expenses.php');
+    exit();
 }
 
 $expenseId = intval($_GET['id']);
+error_log("Expense ID provided: $expenseId");
+
+// Récupère les détails de la dépense
 $expense = getExpenseDetails($expenseId);
 
 // Vérifie si la dépense existe
 if (!$expense) {
+    error_log("Erreur : Aucune note de frais trouvée pour l'ID spécifié : $expenseId");
     die("Erreur : Aucune note de frais trouvée pour l'ID spécifié.");
 }
 
 // Vérifie si les données contiennent 'user_id'
 if (!isset($expense['user_id'])) {
+    error_log("Erreur : Le champ 'user_id' est manquant dans les données de la dépense pour ID : $expenseId");
+    error_log("Données retournées : " . json_encode($expense));
     die("Erreur : Les données de la dépense sont invalides.");
 }
 
-// Vérifie si la dépense appartient à l'utilisateur
+// Vérifie si la dépense appartient bien à l'utilisateur connecté
 if ($expense['user_id'] != $userId) {
+    error_log("Erreur : Expense ID $expenseId does not belong to User ID $userId.");
     die("Erreur : Vous n'êtes pas autorisé à modifier cette note de frais.");
 }
 
 // Gestion des mises à jour
-$error = "";
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $description = trim($_POST['description']);
     $amount = floatval($_POST['amount']);
