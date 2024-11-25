@@ -8,6 +8,19 @@ requireLogin(); // Vérifie si l'utilisateur est connecté
 $userId = $_SESSION['user_id'];
 $expenses = listExpensesByUser($userId);
 
+$success = '';
+$error = '';
+
+// Gestion de la soumission d'une note de frais
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_expense_id'])) {
+    $expenseId = intval($_POST['submit_expense_id']);
+    if (updateExpenseStatus($expenseId, 'soumise')) {
+        $success = "La note de frais a été soumise avec succès.";
+        $expenses = listExpensesByUser($userId); // Rafraîchir les données
+    } else {
+        $error = "Erreur lors de la soumission de la note de frais.";
+    }
+}
 ?>
 <!DOCTYPE html>
 <html lang="fr">
@@ -96,6 +109,14 @@ $expenses = listExpensesByUser($userId);
         <a href="submit_expense.php" class="btn-create-expense"><i class="fas fa-plus"></i> Créer une note de frais</a>
     </div>
 
+    <!-- Messages -->
+    <?php if ($success): ?>
+        <div class="alert alert-success"><?= htmlspecialchars($success) ?></div>
+    <?php endif; ?>
+    <?php if ($error): ?>
+        <div class="alert alert-danger"><?= htmlspecialchars($error) ?></div>
+    <?php endif; ?>
+
     <!-- Tableau des notes de frais -->
     <div class="card">
         <div class="card-header bg-info text-white">
@@ -123,12 +144,16 @@ $expenses = listExpensesByUser($userId);
                                     <td>
                                         <span class="badge 
                                             <?= $expense['status'] === 'brouillon' ? 'bg-warning text-dark' : 
-                                                ($expense['status'] === 'approuvée' ? 'bg-success' : 'bg-danger') ?>">
+                                                ($expense['status'] === 'soumise' ? 'bg-primary' : 'bg-success') ?>">
                                             <?= htmlspecialchars($expense['status']) ?>
                                         </span>
                                     </td>
                                     <td>
                                         <?php if ($expense['status'] === 'brouillon'): ?>
+                                            <form method="POST" style="display: inline;">
+                                                <input type="hidden" name="submit_expense_id" value="<?= $expense['id'] ?>">
+                                                <button type="submit" class="btn btn-primary btn-sm"><i class="fas fa-paper-plane"></i> Soumettre</button>
+                                            </form>
                                             <a href="edit_expense.php?id=<?= $expense['id'] ?>" class="btn btn-warning btn-sm">
                                                 <i class="fas fa-edit"></i> Modifier
                                             </a>
