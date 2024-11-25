@@ -87,20 +87,20 @@ function getAllFoldersWithDocuments($userId, $userRole) {
         .folder-card {
             border: none;
             border-radius: 10px;
-            transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
             background: linear-gradient(135deg, #007bff, #0056b3);
             color: white;
-            padding: 15px;
+            padding: 20px;
             text-align: center;
-            height: 180px;
+            height: 150px;
             display: flex;
             flex-direction: column;
             justify-content: space-between;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
         }
 
         .folder-card:hover {
-            transform: scale(1.03);
-            box-shadow: 0px 6px 15px rgba(0, 0, 0, 0.2);
+            transform: scale(1.05);
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.2);
         }
 
         .folder-card i {
@@ -111,7 +111,7 @@ function getAllFoldersWithDocuments($userId, $userRole) {
         .folder-card h5 {
             font-size: 1.2rem;
             font-weight: bold;
-            margin-bottom: 5px;
+            margin: 0;
         }
 
         .card-actions a {
@@ -127,6 +127,30 @@ function getAllFoldersWithDocuments($userId, $userRole) {
 
         .card-actions a:hover {
             background-color: rgba(0, 0, 0, 0.9);
+        }
+
+        .document-list {
+            background-color: #fff;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            margin-top: 20px;
+        }
+
+        .document-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .document-item:last-child {
+            border-bottom: none;
+        }
+
+        .document-item i {
+            margin-right: 10px;
         }
 
         h1 {
@@ -157,13 +181,13 @@ function getAllFoldersWithDocuments($userId, $userRole) {
                 </div>
             </div>
             <div class="col-12 collapse" id="collapse<?= $folderId ?>">
-                <div class="document-list mt-3 p-3 border rounded bg-light">
+                <div class="document-list">
                     <h6 class="text-primary mb-3">Documents dans le dossier "<?= htmlspecialchars($folder['name']) ?>"</h6>
                     <?php if (!empty($folder['documents'])): ?>
                         <?php foreach ($folder['documents'] as $document): ?>
-                            <div class="d-flex justify-content-between align-items-center mb-2">
+                            <div class="document-item">
                                 <span><i class="fas fa-file-alt text-muted"></i> <?= htmlspecialchars($document['name']) ?></span>
-                                <a href="/uploads/<?= htmlspecialchars($document['name']) ?>" class="btn btn-download btn-sm" download>
+                                <a href="/uploads/<?= htmlspecialchars($document['name']) ?>" class="btn btn-success btn-sm" download>
                                     <i class="fas fa-download"></i> Télécharger
                                 </a>
                             </div>
@@ -179,4 +203,3 @@ function getAllFoldersWithDocuments($userId, $userRole) {
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
-
