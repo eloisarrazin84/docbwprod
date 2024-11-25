@@ -20,7 +20,7 @@ function listExpensesByUser($userId) {
     global $pdo;
     try {
         $stmt = $pdo->prepare("
-            SELECT * 
+            SELECT id, description, amount, category, expense_date, comment, status, receipt_path 
             FROM expense_notes 
             WHERE user_id = ? 
             ORDER BY date_submitted DESC
@@ -66,6 +66,22 @@ function updateExpenseStatus($expenseId, $status) {
     }
 }
 
+function updateExpense($expenseId, $description, $amount, $category, $expenseDate, $comment) {
+    global $pdo;
+    try {
+        $stmt = $pdo->prepare("
+            UPDATE expense_notes 
+            SET description = ?, amount = ?, category = ?, expense_date = ?, comment = ? 
+            WHERE id = ?
+        ");
+        $stmt->execute([$description, $amount, $category, $expenseDate, $comment, $expenseId]);
+        return true;
+    } catch (PDOException $e) {
+        error_log("Erreur PDO : " . $e->getMessage());
+        return false;
+    }
+}
+
 function deleteExpense($expenseId) {
     global $pdo;
     try {
@@ -85,7 +101,7 @@ function getExpenseDetails($expenseId) {
     global $pdo;
     try {
         $stmt = $pdo->prepare("
-            SELECT * 
+            SELECT id, description, amount, category, expense_date, comment, status, receipt_path 
             FROM expense_notes 
             WHERE id = ?
         ");
