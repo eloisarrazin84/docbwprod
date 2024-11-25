@@ -109,22 +109,97 @@ function listSubmittedExpenses($category = '', $status = '', $date = '', $user =
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gestion des Notes de Frais</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
+        .btn-back {
+            background-color: #007bff;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            padding: 10px 20px;
+            transition: background-color 0.3s ease;
+            font-size: 14px;
+        }
+        .btn-back:hover {
+            background-color: #0056b3;
+        }
+        .card {
+            border-radius: 10px;
+            border: none;
+            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
+        }
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0px 6px 10px rgba(0, 0, 0, 0.15);
+        }
+        .card-header {
+            background-color: #17a2b8;
+            color: white;
+        }
+        .btn-create {
+            background-color: #28a745;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            padding: 10px 20px;
+            transition: background-color 0.3s ease;
+            display: inline-block;
+        }
+        .btn-create:hover {
+            background-color: #218838;
+        }
+        .table-responsive {
+            margin-top: 20px;
+        }
+        h1, h2 {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: #333;
+        }
+        .form-select, .form-control {
+            border-radius: 5px;
+        }
+        .btn-export {
+            background-color: #ffc107;
+            color: white;
+            text-decoration: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            transition: background-color 0.3s ease;
+        }
+        .btn-export:hover {
+            background-color: #e0a800;
+        }
+        @media (max-width: 768px) {
+            .table thead {
+                display: none;
+            }
+            .table tbody td {
+                display: block;
+                width: 100%;
+                text-align: right;
+                border-bottom: 1px solid #dee2e6;
+            }
+            .table tbody td:before {
+                content: attr(data-label);
+                float: left;
+                font-weight: bold;
+                text-transform: capitalize;
+            }
+        }
+    </style>
 </head>
 <body>
 <div class="container mt-5">
     <!-- Retour au tableau de bord -->
-    <a href="dashboard.php" class="btn btn-primary mb-3"><i class="fas fa-arrow-left"></i> Retour au Tableau de Bord</a>
+    <a href="dashboard.php" class="btn-back mb-3"><i class="fas fa-arrow-left"></i> Retour au Tableau de Bord</a>
 
     <!-- Titre -->
     <h1 class="text-center mb-4">Gestion des Notes de Frais</h1>
-
-    <?php if ($success): ?>
-        <div class="alert alert-success"><?= htmlspecialchars($success) ?></div>
-    <?php endif; ?>
-
-    <?php if ($error): ?>
-        <div class="alert alert-danger"><?= htmlspecialchars($error) ?></div>
-    <?php endif; ?>
 
     <!-- Filtres -->
     <form method="GET" class="row mb-4">
@@ -132,101 +207,103 @@ function listSubmittedExpenses($category = '', $status = '', $date = '', $user =
             <label for="category" class="form-label">Catégorie</label>
             <select name="category" id="category" class="form-select">
                 <option value="">Toutes</option>
-                <option value="transport" <?= $categoryFilter === 'transport' ? 'selected' : '' ?>>Transport</option>
-                <option value="repas" <?= $categoryFilter === 'repas' ? 'selected' : '' ?>>Repas</option>
-                <option value="hebergement" <?= $categoryFilter === 'hebergement' ? 'selected' : '' ?>>Hébergement</option>
-                <option value="autre" <?= $categoryFilter === 'autre' ? 'selected' : '' ?>>Autre</option>
+                <option value="transport">Transport</option>
+                <option value="repas">Repas</option>
+                <option value="hebergement">Hébergement</option>
+                <option value="autre">Autre</option>
             </select>
         </div>
         <div class="col-md-3">
             <label for="status" class="form-label">Statut</label>
             <select name="status" id="status" class="form-select">
                 <option value="">Tous</option>
-                <option value="soumise" <?= $statusFilter === 'soumise' ? 'selected' : '' ?>>Soumise</option>
-                <option value="approuvée" <?= $statusFilter === 'approuvée' ? 'selected' : '' ?>>Approuvée</option>
-                <option value="rejetée" <?= $statusFilter === 'rejetée' ? 'selected' : '' ?>>Rejetée</option>
+                <option value="soumise">Soumise</option>
+                <option value="approuvée">Approuvée</option>
+                <option value="rejetée">Rejetée</option>
             </select>
         </div>
         <div class="col-md-3">
             <label for="date" class="form-label">Date de Dépense</label>
-            <input type="date" name="date" id="date" class="form-control" value="<?= htmlspecialchars($dateFilter) ?>">
+            <input type="date" name="date" id="date" class="form-control">
         </div>
         <div class="col-md-3">
             <label for="user" class="form-label">Utilisateur</label>
             <select name="user" id="user" class="form-select">
                 <option value="">Tous</option>
                 <?php foreach ($users as $user): ?>
-                    <option value="<?= htmlspecialchars($user['id']) ?>" <?= $userFilter == $user['id'] ? 'selected' : '' ?>>
-                        <?= htmlspecialchars($user['name'] . ' (' . $user['email'] . ')') ?>
-                    </option>
+                    <option value="<?= htmlspecialchars($user['id']) ?>"><?= htmlspecialchars($user['name'] . ' (' . $user['email'] . ')') ?></option>
                 <?php endforeach; ?>
             </select>
         </div>
         <div class="col-12 text-end mt-3">
             <button type="submit" class="btn btn-secondary">Filtrer</button>
-            <form method="POST" style="display: inline;">
-                <button type="submit" name="export_to_excel" class="btn btn-success">Exporter vers Excel</button>
-            </form>
+            <button type="submit" name="export_to_excel" class="btn btn-export"><i class="fas fa-file-export"></i> Exporter vers Excel</button>
         </div>
     </form>
 
     <!-- Tableau des notes de frais -->
     <div class="card">
+        <div class="card-header">
+            <h2 class="card-title">Liste des Notes de Frais</h2>
+        </div>
         <div class="card-body">
-            <table class="table table-striped">
-                <thead>
-                    <tr>
-                        <th>ID</th>
-                        <th>Description</th>
-                        <th>Montant (€)</th>
-                        <th>Catégorie</th>
-                        <th>Statut</th>
-                        <th>Date de Soumission</th>
-                        <th>Date de Dépense</th>
-                        <th>Utilisateur</th>
-                        <th>Commentaire</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <?php if (!empty($expenses)): ?>
-                        <?php foreach ($expenses as $expense): ?>
-                            <tr>
-                                <td><?= htmlspecialchars($expense['id']) ?></td>
-                                <td><?= htmlspecialchars($expense['description']) ?></td>
-                                <td><?= htmlspecialchars($expense['amount']) ?></td>
-                                <td><?= htmlspecialchars($expense['category']) ?></td>
-                                <td><?= htmlspecialchars($expense['status']) ?></td>
-                                <td><?= htmlspecialchars($expense['date_submitted']) ?></td>
-                                <td><?= htmlspecialchars($expense['expense_date']) ?></td>
-                                <td><?= htmlspecialchars($expense['user_name'] . ' (' . $expense['user_email'] . ')') ?></td>
-                                <td><?= htmlspecialchars($expense['comment']) ?></td>
-                                <td>
-                                    <form method="POST" style="display: inline;">
-                                        <input type="hidden" name="expense_id" value="<?= htmlspecialchars($expense['id']) ?>">
-                                        <select name="status" class="form-select form-select-sm d-inline-block" style="width: auto;">
-                                            <option value="soumise" <?= $expense['status'] === 'soumise' ? 'selected' : '' ?>>Soumise</option>
-                                            <option value="approuvée" <?= $expense['status'] === 'approuvée' ? 'selected' : '' ?>>Approuvée</option>
-                                            <option value="rejetée" <?= $expense['status'] === 'rejetée' ? 'selected' : '' ?>>Rejetée</option>
-                                        </select>
-                                        <button type="submit" name="update_status" class="btn btn-primary btn-sm">Mettre à jour</button>
-                                    </form>
-                                    <form method="POST" style="display: inline;">
-                                        <input type="hidden" name="expense_id" value="<?= htmlspecialchars($expense['id']) ?>">
-                                        <button type="submit" name="delete_expense" class="btn btn-danger btn-sm">Supprimer</button>
-                                    </form>
-                                </td>
-                            </tr>
-                        <?php endforeach; ?>
-                    <?php else: ?>
+            <div class="table-responsive">
+                <table class="table table-striped table-hover">
+                    <thead>
                         <tr>
-                            <td colspan="10" class="text-center">Aucune note de frais trouvée.</td>
+                            <th>ID</th>
+                            <th>Description</th>
+                            <th>Montant (€)</th>
+                            <th>Catégorie</th>
+                            <th>Statut</th>
+                            <th>Date de Soumission</th>
+                            <th>Date de Dépense</th>
+                            <th>Utilisateur</th>
+                            <th>Commentaire</th>
+                            <th>Actions</th>
                         </tr>
-                    <?php endif; ?>
-                </tbody>
-            </table>
+                    </thead>
+                    <tbody>
+                        <?php if (!empty($expenses)): ?>
+                            <?php foreach ($expenses as $expense): ?>
+                                <tr>
+                                    <td><?= htmlspecialchars($expense['id']) ?></td>
+                                    <td><?= htmlspecialchars($expense['description']) ?></td>
+                                    <td><?= htmlspecialchars($expense['amount']) ?></td>
+                                    <td><?= htmlspecialchars($expense['category']) ?></td>
+                                    <td><?= htmlspecialchars($expense['status']) ?></td>
+                                    <td><?= htmlspecialchars($expense['date_submitted']) ?></td>
+                                    <td><?= htmlspecialchars($expense['expense_date']) ?></td>
+                                    <td><?= htmlspecialchars($expense['user_name'] . ' (' . $expense['user_email'] . ')') ?></td>
+                                    <td><?= htmlspecialchars($expense['comment']) ?></td>
+                                    <td>
+                                        <form method="POST" style="display: inline;">
+                                            <input type="hidden" name="expense_id" value="<?= htmlspecialchars($expense['id']) ?>">
+                                            <select name="status" class="form-select form-select-sm d-inline-block" style="width: auto;">
+                                                <option value="soumise" <?= $expense['status'] === 'soumise' ? 'selected' : '' ?>>Soumise</option>
+                                                <option value="approuvée" <?= $expense['status'] === 'approuvée' ? 'selected' : '' ?>>Approuvée</option>
+                                                <option value="rejetée" <?= $expense['status'] === 'rejetée' ? 'selected' : '' ?>>Rejetée</option>
+                                            </select>
+                                            <button type="submit" name="update_status" class="btn btn-primary btn-sm">Mettre à jour</button>
+                                        </form>
+                                        <form method="POST" style="display: inline;">
+                                            <input type="hidden" name="expense_id" value="<?= htmlspecialchars($expense['id']) ?>">
+                                            <button type="submit" name="delete_expense" class="btn btn-danger btn-sm">Supprimer</button>
+                                        </form>
+                                    </td>
+                                </tr>
+                            <?php endforeach; ?>
+                        <?php else: ?>
+                            <tr>
+                                <td colspan="10" class="text-center">Aucune note de frais trouvée.</td>
+                            </tr>
+                        <?php endif; ?>
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
 </div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
