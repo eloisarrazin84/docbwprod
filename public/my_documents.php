@@ -1,3 +1,62 @@
+<?php
+require '../src/session_manager.php';
+require '../src/db_connect.php';
+require '../src/document_manager.php';
+require '../src/folder_manager.php';
+
+requireLogin(); // Vérifie si l'utilisateur est connecté
+
+$pageTitle = "Mes Documents";
+
+// Récupérer l'utilisateur connecté
+$userId = $_SESSION['user_id'];
+$userRole = getUserRole(); // Récupère le rôle de l'utilisateur connecté
+
+// Récupérer tous les dossiers avec leurs documents pour l'utilisateur connecté
+$folders = getAllFoldersWithDocuments($userId, $userRole);
+
+// Fonction pour récupérer les dossiers et leurs documents
+function getAllFoldersWithDocuments($userId, $userRole) {
+    global $pdo;
+    try {
+        $query = "
+            SELECT f.id AS folder_id, f.name AS folder_name, d.id AS document_id, d.file_name, d.upload_date 
+            FROM folders f
+            LEFT JOIN documents d ON f.id = d.folder_id
+            WHERE f.user_id = :userId
+            ORDER BY f.name ASC, d.upload_date DESC
+        ";
+
+        $stmt = $pdo->prepare($query);
+        $stmt->bindParam(':userId', $userId, PDO::PARAM_INT);
+        $stmt->execute();
+        $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        // Organiser les documents par dossiers
+        $folders = [];
+        foreach ($results as $row) {
+            $folderId = $row['folder_id'];
+            if (!isset($folders[$folderId])) {
+                $folders[$folderId] = [
+                    'name' => $row['folder_name'],
+                    'documents' => []
+                ];
+            }
+            if (!empty($row['document_id'])) {
+                $folders[$folderId]['documents'][] = [
+                    'id' => $row['document_id'],
+                    'name' => $row['file_name'],
+                    'upload_date' => $row['upload_date']
+                ];
+            }
+        }
+        return $folders;
+    } catch (PDOException $e) {
+        error_log("Erreur PDO : " . $e->getMessage());
+        return [];
+    }
+}
+?>
 <!DOCTYPE html>
 <html lang="fr">
 <head>
