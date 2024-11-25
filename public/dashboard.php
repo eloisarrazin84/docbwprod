@@ -157,22 +157,11 @@ if ($profileImage) {
                 </div>
             </div>
             <div class="col-md-4 col-sm-12">
-                <div class="card text-white bg-info mb-3 shadow">
-                    <div class="card-header text-center"><i class="fas fa-tools"></i> Autres Fonctionnalités</div>
+                <div class="card text-white bg-warning mb-3 shadow">
+                    <div class="card-header text-center"><i class="fas fa-receipt"></i> Gestion des Notes de Frais</div>
                     <div class="card-body text-center">
-                        <p class="card-text">Ajouter des fonctionnalités personnalisées ici.</p>
-                        <a href="#" class="btn btn-light"><i class="fas fa-arrow-right"></i> Explorer</a>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="row">
-            <div class="col-md-4 col-sm-12">
-                <div class="card text-white bg-secondary mb-3 shadow">
-                    <div class="card-header text-center"><i class="fas fa-folder-open"></i> Mes Documents</div>
-                    <div class="card-body text-center">
-                        <p class="card-text">Accédez aux documents qui vous sont assignés.</p>
-                        <a href="my_documents.php" class="btn btn-light"><i class="fas fa-arrow-right"></i> Voir mes documents</a>
+                        <p class="card-text">Consulter et gérer les notes de frais des utilisateurs.</p>
+                        <a href="manage_expenses.php" class="btn btn-light"><i class="fas fa-arrow-right"></i> Gérer</a>
                     </div>
                 </div>
             </div>
