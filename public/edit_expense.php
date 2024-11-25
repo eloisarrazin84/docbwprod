@@ -8,16 +8,14 @@ requireLogin(); // Vérifie si l'utilisateur est connecté
 
 // Redirige si l'utilisateur n'est pas connecté ou si user_id est introuvable
 if (!isset($_SESSION['user_id'])) {
-    header('Location: login.php');
-    exit();
+    die("Erreur : Vous devez être connecté pour accéder à cette page.");
 }
 
 $userId = $_SESSION['user_id']; // Définit l'utilisateur connecté
 
 // Vérifie si une ID d'expense est fournie
 if (!isset($_GET['id']) || !is_numeric($_GET['id'])) {
-    header('Location: user_dashboard_expenses.php');
-    exit();
+    die("Erreur : L'ID de la note de frais est manquant ou invalide.");
 }
 
 $expenseId = intval($_GET['id']);
@@ -25,7 +23,7 @@ $expense = getExpenseDetails($expenseId);
 
 // Vérifie si la dépense existe
 if (!$expense) {
-    die("Erreur : Cette note de frais n'existe pas.");
+    die("Erreur : Aucune note de frais trouvée pour l'ID spécifié.");
 }
 
 // Vérifie si la dépense appartient bien à l'utilisateur connecté
