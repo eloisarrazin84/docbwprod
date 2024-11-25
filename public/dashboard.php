@@ -192,7 +192,7 @@ if ($profileImage) {
                 <div class="card text-white bg-info mb-3 shadow">
                     <div class="card-header text-center"><i class="fas fa-file-invoice-dollar"></i> Mes Notes de Frais</div>
                     <div class="card-body text-center">
-                        <p class="card-text">Suivez vos notes de frais et soumettez-en de nouvelles.</p>
+                        <p class="card-text">Suivez vos notes de frais.</p>
                         <a href="user_dashboard_expenses.php" class="btn btn-light"><i class="fas fa-arrow-right"></i> Accéder</a>
                     </div>
                 </div>
