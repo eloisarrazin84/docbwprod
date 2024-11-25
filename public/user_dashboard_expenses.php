@@ -21,6 +21,18 @@ $expenses = listExpensesByUser($userId);
         body {
             background-color: #f8f9fa;
         }
+        .btn-back {
+            background-color: #007bff;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            padding: 10px 20px;
+            transition: background-color 0.3s ease;
+            font-size: 14px;
+        }
+        .btn-back:hover {
+            background-color: #0056b3;
+        }
         .card {
             border-radius: 10px;
             border: none;
@@ -54,22 +66,45 @@ $expenses = listExpensesByUser($userId);
             text-align: center;
             margin-bottom: 30px;
         }
+        @media (max-width: 768px) {
+            .table thead {
+                display: none;
+            }
+            .table tbody td {
+                display: block;
+                width: 100%;
+                text-align: right;
+                border-bottom: 1px solid #dee2e6;
+            }
+            .table tbody td:before {
+                content: attr(data-label);
+                float: left;
+                font-weight: bold;
+                text-transform: capitalize;
+            }
+        }
     </style>
 </head>
 <body>
 <div class="container mt-5">
+    <!-- Retour au tableau de bord -->
+    <a href="dashboard.php" class="btn-back mb-3"><i class="fas fa-arrow-left"></i> Retour au Tableau de Bord</a>
+
     <!-- Titre et bouton de création -->
     <h1>Mes Notes de Frais</h1>
     <div class="text-center">
-        <a href="create_expense.php" class="btn-create-expense"><i class="fas fa-plus"></i> Créer une note de frais</a>
+        <a href="submit_expense.php" class="btn-create-expense"><i class="fas fa-plus"></i> Créer une note de frais</a>
     </div>
 
     <!-- Tableau des notes de frais -->
     <div class="card">
+        <div class="card-header bg-info text-white">
+            <h2 class="card-title">Liste des Notes de Frais</h2>
+        </div>
         <div class="card-body">
             <div class="table-responsive">
                 <table class="table table-striped table-hover">
-                    <thead class="table-light">
+                    <thead>
                         <tr>
                             <th>Description</th>
                             <th>Montant (€)</th>
