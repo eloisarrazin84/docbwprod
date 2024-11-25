@@ -9,9 +9,24 @@ requireAdmin(); // Vérifie si l'utilisateur est administrateur
 $categoryFilter = $_GET['category'] ?? '';
 $statusFilter = $_GET['status'] ?? '';
 $dateFilter = $_GET['date'] ?? '';
+$userFilter = $_GET['user'] ?? '';
+
+// Récupérer la liste des utilisateurs
+function listAllUsers() {
+    global $pdo;
+    try {
+        $stmt = $pdo->query("SELECT id, name, email FROM users ORDER BY name ASC");
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    } catch (PDOException $e) {
+        error_log("Erreur PDO : " . $e->getMessage());
+        return [];
+    }
+}
+
+$users = listAllUsers();
 
 // Récupérer toutes les notes de frais sauf celles en statut "brouillon"
-$expenses = listSubmittedExpenses($categoryFilter, $statusFilter, $dateFilter);
+$expenses = listSubmittedExpenses($categoryFilter, $statusFilter, $dateFilter, $userFilter);
 
 // Gestion des actions
 $success = '';
@@ -46,7 +61,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 // Fonction pour récupérer uniquement les notes de frais soumises ou approuvées
-function listSubmittedExpenses($category = '', $status = '', $date = '') {
+function listSubmittedExpenses($category = '', $status = '', $date = '', $user = '') {
     global $pdo;
     try {
         $query = "
@@ -72,6 +87,11 @@ function listSubmittedExpenses($category = '', $status = '', $date = '') {
             $params[] = $date;
         }
 
+        if ($user) {
+            $query .= " AND e.user_id = ?";
+            $params[] = $user;
+        }
+
         $query .= " ORDER BY e.date_submitted DESC";
         $stmt = $pdo->prepare($query);
         $stmt->execute($params);
@@ -80,28 +100,6 @@ function listSubmittedExpenses($category = '', $status = '', $date = '') {
         error_log("Erreur PDO : " . $e->getMessage());
         return [];
     }
-}
-
-// Fonction pour exporter les données vers Excel
-function exportExpensesToExcel($expenses) {
-    header("Content-Type: application/vnd.ms-excel");
-    header("Content-Disposition: attachment; filename=expenses_export.xls");
-
-    echo "ID\tDescription\tMontant (€)\tCatégorie\tStatut\tDate Soumise\tDate de Dépense\tUtilisateur\tCommentaire\n";
-    foreach ($expenses as $expense) {
-        echo implode("\t", [
-            $expense['id'],
-            $expense['description'],
-            $expense['amount'],
-            $expense['category'],
-            $expense['status'],
-            $expense['date_submitted'],
-            $expense['expense_date'],
-            $expense['user_name'] . ' (' . $expense['user_email'] . ')',
-            $expense['comment']
-        ]) . "\n";
-    }
-    exit;
 }
 ?>
 <!DOCTYPE html>
@@ -130,7 +128,7 @@ function exportExpensesToExcel($expenses) {
 
     <!-- Filtres -->
     <form method="GET" class="row mb-4">
-        <div class="col-md-4">
+        <div class="col-md-3">
             <label for="category" class="form-label">Catégorie</label>
             <select name="category" id="category" class="form-select">
                 <option value="">Toutes</option>
@@ -140,7 +138,7 @@ function exportExpensesToExcel($expenses) {
                 <option value="autre" <?= $categoryFilter === 'autre' ? 'selected' : '' ?>>Autre</option>
             </select>
         </div>
-        <div class="col-md-4">
+        <div class="col-md-3">
             <label for="status" class="form-label">Statut</label>
             <select name="status" id="status" class="form-select">
                 <option value="">Tous</option>
@@ -149,9 +147,20 @@ function exportExpensesToExcel($expenses) {
                 <option value="rejetée" <?= $statusFilter === 'rejetée' ? 'selected' : '' ?>>Rejetée</option>
             </select>
         </div>
-        <div class="col-md-4">
+        <div class="col-md-3">
             <label for="date" class="form-label">Date de Dépense</label>
             <input type="date" name="date" id="date" class="form-control" value="<?= htmlspecialchars($dateFilter) ?>">
+        </div>
+        <div class="col-md-3">
+            <label for="user" class="form-label">Utilisateur</label>
+            <select name="user" id="user" class="form-select">
+                <option value="">Tous</option>
+                <?php foreach ($users as $user): ?>
+                    <option value="<?= htmlspecialchars($user['id']) ?>" <?= $userFilter == $user['id'] ? 'selected' : '' ?>>
+                        <?= htmlspecialchars($user['name'] . ' (' . $user['email'] . ')') ?>
+                    </option>
+                <?php endforeach; ?>
+            </select>
         </div>
         <div class="col-12 text-end mt-3">
             <button type="submit" class="btn btn-secondary">Filtrer</button>
@@ -200,11 +209,11 @@ function exportExpensesToExcel($expenses) {
                                             <option value="approuvée" <?= $expense['status'] === 'approuvée' ? 'selected' : '' ?>>Approuvée</option>
                                             <option value="rejetée" <?= $expense['status'] === 'rejetée' ? 'selected' : '' ?>>Rejetée</option>
                                         </select>
-                                        <button type="submit" name="update_status" class="btn btn-sm btn-primary">Mettre à jour</button>
+                                        <button type="submit" name="update_status" class="btn btn-primary btn-sm">Mettre à jour</button>
                                     </form>
                                     <form method="POST" style="display: inline;">
                                         <input type="hidden" name="expense_id" value="<?= htmlspecialchars($expense['id']) ?>">
-                                        <button type="submit" name="delete_expense" class="btn btn-sm btn-danger">Supprimer</button>
+                                        <button type="submit" name="delete_expense" class="btn btn-danger btn-sm">Supprimer</button>
                                     </form>
                                 </td>
                             </tr>
@@ -219,6 +228,5 @@ function exportExpensesToExcel($expenses) {
         </div>
     </div>
 </div>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
