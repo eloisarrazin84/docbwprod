@@ -6,7 +6,7 @@ require '../src/expense_manager.php';
 
 requireLogin(); // Vérifie si l'utilisateur est connecté
 
-// Redirige si l'utilisateur n'est pas connecté ou si user_id est introuvable
+// Vérifie si l'utilisateur est connecté
 if (!isset($_SESSION['user_id'])) {
     die("Erreur : Vous devez être connecté pour accéder à cette page.");
 }
@@ -26,7 +26,12 @@ if (!$expense) {
     die("Erreur : Aucune note de frais trouvée pour l'ID spécifié.");
 }
 
-// Vérifie si la dépense appartient bien à l'utilisateur connecté
+// Vérifie si les données contiennent 'user_id'
+if (!isset($expense['user_id'])) {
+    die("Erreur : Les données de la dépense sont invalides.");
+}
+
+// Vérifie si la dépense appartient à l'utilisateur
 if ($expense['user_id'] != $userId) {
     die("Erreur : Vous n'êtes pas autorisé à modifier cette note de frais.");
 }
