@@ -4,15 +4,13 @@ require '../src/session_manager.php';
 require '../src/db_connect.php';
 require '../src/expense_manager.php';
 
-requireLogin(); // Vérifie si l'utilisateur est connecté
-
-// Vérifie si l'utilisateur est connecté et si la session contient "user_id"
-if (empty($_SESSION['user_id'])) {
+// Vérifie si l'utilisateur est connecté
+if (!isset($_SESSION['user_id']) || empty($_SESSION['user_id'])) {
     header('Location: login.php');
     exit();
 }
 
-$userId = $_SESSION['user_id']; // Définit l'utilisateur connecté
+$userId = (int)$_SESSION['user_id']; // Définit l'utilisateur connecté
 
 // Vérifie si une ID de dépense est fournie et valide
 if (!isset($_GET['id']) || !is_numeric($_GET['id'])) {
@@ -20,7 +18,9 @@ if (!isset($_GET['id']) || !is_numeric($_GET['id'])) {
     exit();
 }
 
-$expenseId = intval($_GET['id']);
+$expenseId = (int)$_GET['id'];
+
+// Récupère les détails de la dépense
 $expense = getExpenseDetails($expenseId);
 
 // Vérifie si la dépense existe
@@ -30,15 +30,15 @@ if (!$expense) {
 }
 
 // Vérifie si la dépense appartient bien à l'utilisateur connecté
-if ((int)$expense['user_id'] !== (int)$userId) {
+if ((int)$expense['user_id'] !== $userId) {
     header('Location: user_dashboard_expenses.php');
     exit();
 }
 
-// Gestion des mises à jour
 $error = '';
 $success = '';
 
+// Gestion de la mise à jour
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $description = trim($_POST['description'] ?? '');
     $amount = floatval($_POST['amount'] ?? 0);
@@ -50,7 +50,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (empty($description) || $amount <= 0 || empty($category) || empty($expenseDate)) {
         $error = "Tous les champs obligatoires doivent être remplis.";
     } else {
-        // Mise à jour de la dépense
+        // Mise à jour dans la base de données
         if (updateExpense($expenseId, $description, $amount, $category, $expenseDate, $comment)) {
             header('Location: user_dashboard_expenses.php');
             exit();
