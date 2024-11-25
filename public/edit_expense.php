@@ -25,26 +25,23 @@ if (!isset($_GET['id']) || !is_numeric($_GET['id'])) {
 $expenseId = intval($_GET['id']);
 error_log("Expense ID provided: $expenseId");
 
+// Récupère les détails de la dépense
+$expense = getExpenseDetails($expenseId);
+
 // Vérifie si la dépense existe
 if (!$expense) {
     error_log("Erreur : Aucune note de frais trouvée pour l'ID spécifié : $expenseId");
     die("Erreur : Aucune note de frais trouvée pour l'ID spécifié.");
 }
 
-// Vérifie si les données contiennent 'user_id'
-if (!isset($expense['user_id'])) {
-    error_log("Erreur : Le champ 'user_id' est manquant dans les données de la dépense pour ID : $expenseId");
-    error_log("Données retournées : " . json_encode($expense));
-    die("Erreur : Les données de la dépense sont invalides.");
-}
-
 // Vérifie si la dépense appartient bien à l'utilisateur connecté
 if ($expense['user_id'] != $userId) {
-    error_log("Erreur : Expense ID $expenseId does not belong to User ID $userId.");
+    error_log("Erreur : La note de frais (ID : $expenseId) n'appartient pas à l'utilisateur connecté (ID : $userId).");
     die("Erreur : Vous n'êtes pas autorisé à modifier cette note de frais.");
 }
 
 // Gestion des mises à jour
+$error = '';
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $description = trim($_POST['description']);
     $amount = floatval($_POST['amount']);
