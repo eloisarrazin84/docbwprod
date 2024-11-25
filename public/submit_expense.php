@@ -11,13 +11,22 @@ $success = '';
 // Gestion de la soumission de la note de frais
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $userId = $_SESSION['user_id'];
-    $description = $_POST['description'] ?? '';
-    $amount = $_POST['amount'] ?? 0;
+    $description = trim($_POST['description'] ?? '');
+    $amount = floatval($_POST['amount'] ?? 0);
     $category = $_POST['category'] ?? '';
     $receiptPath = null;
 
-    // Vérifiez si un fichier justificatif a été téléchargé
-    if (isset($_FILES['receipt']) && $_FILES['receipt']['error'] === UPLOAD_ERR_OK) {
+    // Validation des champs
+    if (empty($description)) {
+        $error = 'La description est obligatoire.';
+    } elseif ($amount <= 0) {
+        $error = 'Le montant doit être supérieur à 0.';
+    } elseif (empty($category)) {
+        $error = 'La catégorie est obligatoire.';
+    }
+
+    // Vérifie si un fichier justificatif a été téléchargé
+    if (empty($error) && isset($_FILES['receipt']) && $_FILES['receipt']['error'] === UPLOAD_ERR_OK) {
         $uploadDir = '/var/www/uploads/receipts/';
         if (!is_dir($uploadDir)) {
             mkdir($uploadDir, 0777, true);
@@ -117,10 +126,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <button type="submit" class="btn btn-primary">Soumettre</button>
     </form>
 </div>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
-</body>
-</html>
-
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
