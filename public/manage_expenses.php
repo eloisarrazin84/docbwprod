@@ -9,14 +9,28 @@ requireAdmin(); // Vérifie si l'utilisateur est administrateur
 $expenses = listAllExpenses();
 
 // Gestion des actions
+$success = '';
+$error = '';
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    if (isset($_POST['update_status']) && isset($_POST['expense_id']) && isset($_POST['status'])) {
+    if (isset($_POST['update_status'], $_POST['expense_id'], $_POST['status'])) {
         $expenseId = intval($_POST['expense_id']);
         $status = $_POST['status'];
         if (updateExpenseStatus($expenseId, $status)) {
             $success = "Le statut de la note de frais #{$expenseId} a été mis à jour.";
         } else {
             $error = "Erreur lors de la mise à jour du statut.";
+        }
+    }
+
+    if (isset($_POST['delete_expense'], $_POST['expense_id'])) {
+        $expenseId = intval($_POST['expense_id']);
+        if (deleteExpense($expenseId)) {
+            $success = "La note de frais #{$expenseId} a été supprimée avec succès.";
+            // Recharger les notes après suppression
+            $expenses = listAllExpenses();
+        } else {
+            $error = "Erreur lors de la suppression de la note de frais.";
         }
     }
 }
@@ -46,11 +60,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <div class="container">
     <h1 class="text-center mb-4">Gestion des Notes de Frais</h1>
 
-    <?php if (isset($success)): ?>
+    <?php if ($success): ?>
         <div class="alert alert-success"><?= htmlspecialchars($success) ?></div>
     <?php endif; ?>
 
-    <?php if (isset($error)): ?>
+    <?php if ($error): ?>
         <div class="alert alert-danger"><?= htmlspecialchars($error) ?></div>
     <?php endif; ?>
 
@@ -64,6 +78,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <th>Statut</th>
                 <th>Date Soumise</th>
                 <th>Utilisateur</th>
+                <th>Justificatif</th>
                 <th>Actions</th>
             </tr>
         </thead>
@@ -82,21 +97,34 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             (<?= htmlspecialchars($expense['user_email'] ?? 'Inconnu') ?>)
                         </td>
                         <td>
+                            <?php if (!empty($expense['receipt_path'])): ?>
+                                <a href="/uploads/receipts/<?= htmlspecialchars($expense['receipt_path']) ?>" target="_blank" class="btn btn-sm btn-info">
+                                    Voir
+                                </a>
+                            <?php else: ?>
+                                <span class="text-muted">Aucun</span>
+                            <?php endif; ?>
+                        </td>
+                        <td>
                             <form method="POST" style="display: inline;">
                                 <input type="hidden" name="expense_id" value="<?= htmlspecialchars($expense['id']) ?>">
-                                <select name="status" class="form-select form-select-sm" style="width: auto; display: inline-block;">
+                                <select name="status" class="form-select form-select-sm d-inline-block" style="width: auto;">
                                     <option value="en attente" <?= $expense['status'] === 'en attente' ? 'selected' : '' ?>>En attente</option>
                                     <option value="approuvée" <?= $expense['status'] === 'approuvée' ? 'selected' : '' ?>>Approuvée</option>
                                     <option value="rejetée" <?= $expense['status'] === 'rejetée' ? 'selected' : '' ?>>Rejetée</option>
                                 </select>
                                 <button type="submit" name="update_status" class="btn btn-sm btn-primary">Mettre à jour</button>
                             </form>
+                            <form method="POST" style="display: inline;">
+                                <input type="hidden" name="expense_id" value="<?= htmlspecialchars($expense['id']) ?>">
+                                <button type="submit" name="delete_expense" class="btn btn-sm btn-danger">Supprimer</button>
+                            </form>
                         </td>
                     </tr>
                 <?php endforeach; ?>
             <?php else: ?>
                 <tr>
-                    <td colspan="8" class="text-center">Aucune note de frais trouvée.</td>
+                    <td colspan="9" class="text-center">Aucune note de frais trouvée.</td>
                 </tr>
             <?php endif; ?>
         </tbody>
