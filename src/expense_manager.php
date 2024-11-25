@@ -101,7 +101,7 @@ function getExpenseDetails($expenseId) {
     global $pdo;
     try {
         $stmt = $pdo->prepare("
-            SELECT id, description, amount, category, expense_date, comment, status, receipt_path 
+            SELECT id, user_id, description, amount, category, expense_date, comment, status, receipt_path 
             FROM expense_notes 
             WHERE id = ?
         ");
