@@ -31,25 +31,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if (!is_dir($uploadDir)) {
             mkdir($uploadDir, 0777, true);
         }
+        $receiptPath = uniqid() . '-' . basename($_FILES['receipt']['name']);
+        $filePath = $uploadDir . $receiptPath;
 
-        // Validation de la taille du fichier (5 Mo max)
-        if ($_FILES['receipt']['size'] > 5 * 1024 * 1024) {
-            $error = 'Le fichier est trop volumineux. Taille maximale : 5 Mo.';
-        }
-
-        // Validation du type de fichier
-        $allowedTypes = ['image/jpeg', 'image/png', 'application/pdf'];
-        if (!in_array($_FILES['receipt']['type'], $allowedTypes)) {
-            $error = 'Format de fichier invalide. Seuls les PDF, JPG et PNG sont autorisés.';
-        }
-
-        if (empty($error)) {
-            $receiptPath = uniqid() . '-' . basename($_FILES['receipt']['name']);
-            $filePath = $uploadDir . $receiptPath;
-
-            if (!move_uploaded_file($_FILES['receipt']['tmp_name'], $filePath)) {
-                $error = 'Erreur lors du téléchargement du justificatif.';
-            }
+        if (!move_uploaded_file($_FILES['receipt']['tmp_name'], $filePath)) {
+            $error = 'Erreur lors du téléchargement du justificatif.';
         }
     }
 
@@ -63,6 +49,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 ?>
+
 <!DOCTYPE html>
 <html lang="fr">
 <head>
