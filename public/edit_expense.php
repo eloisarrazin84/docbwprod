@@ -6,7 +6,7 @@ require '../src/expense_manager.php';
 
 requireLogin(); // Vérifie si l'utilisateur est connecté
 
-// Redirige si l'utilisateur n'est pas connecté ou si user_id est introuvable
+// Vérifie si l'utilisateur est connecté
 if (!isset($_SESSION['user_id'])) {
     header('Location: login.php');
     exit();
@@ -14,7 +14,7 @@ if (!isset($_SESSION['user_id'])) {
 
 $userId = $_SESSION['user_id']; // Définit l'utilisateur connecté
 
-// Vérifie si une ID d'expense est fournie
+// Vérifie si une ID de dépense est fournie
 if (!isset($_GET['id']) || !is_numeric($_GET['id'])) {
     header('Location: user_dashboard_expenses.php');
     exit();
@@ -30,6 +30,9 @@ if ($expense['user_id'] != $userId) {
 }
 
 // Gestion des mises à jour
+$error = '';
+$success = '';
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $description = trim($_POST['description']);
     $amount = floatval($_POST['amount']);
@@ -37,15 +40,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $expenseDate = $_POST['expense_date'];
     $comment = trim($_POST['comment']);
 
-    if (updateExpense($expenseId, $description, $amount, $category, $expenseDate, $comment)) {
-        header('Location: user_dashboard_expenses.php');
-        exit();
+    // Validation des champs obligatoires
+    if (empty($description) || empty($amount) || empty($category) || empty($expenseDate)) {
+        $error = "Tous les champs obligatoires doivent être remplis.";
     } else {
-        $error = "Erreur lors de la mise à jour de la note de frais.";
+        // Mise à jour de la dépense
+        if (updateExpense($expenseId, $description, $amount, $category, $expenseDate, $comment)) {
+            $success = "La note de frais a été mise à jour avec succès.";
+            header('Location: user_dashboard_expenses.php');
+            exit();
+        } else {
+            $error = "Erreur lors de la mise à jour de la note de frais.";
+        }
     }
 }
 ?>
-!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
@@ -78,9 +88,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         .alert {
             margin-bottom: 20px;
         }
-        .form-group {
-            margin-bottom: 15px;
-        }
     </style>
 </head>
 <body>
@@ -91,17 +98,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <div class="alert alert-danger"><?= htmlspecialchars($error) ?></div>
     <?php endif; ?>
 
+    <?php if (!empty($success)): ?>
+        <div class="alert alert-success"><?= htmlspecialchars($success) ?></div>
+    <?php endif; ?>
+
     <form method="POST">
         <div class="mb-3">
-            <label for="description" class="form-label">Description</label>
+            <label for="description" class="form-label">Description <span class="text-danger">*</span></label>
             <input type="text" class="form-control" id="description" name="description" value="<?= htmlspecialchars($expense['description']) ?>" required>
         </div>
         <div class="mb-3">
-            <label for="amount" class="form-label">Montant (€)</label>
+            <label for="amount" class="form-label">Montant (€) <span class="text-danger">*</span></label>
             <input type="number" class="form-control" id="amount" name="amount" step="0.01" value="<?= htmlspecialchars($expense['amount']) ?>" required>
         </div>
         <div class="mb-3">
-            <label for="category" class="form-label">Catégorie</label>
+            <label for="category" class="form-label">Catégorie <span class="text-danger">*</span></label>
             <select id="category" name="category" class="form-select" required>
                 <option value="transport" <?= $expense['category'] === 'transport' ? 'selected' : '' ?>>Transport</option>
                 <option value="repas" <?= $expense['category'] === 'repas' ? 'selected' : '' ?>>Repas</option>
@@ -110,7 +121,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             </select>
         </div>
         <div class="mb-3">
-            <label for="expense_date" class="form-label">Date de la Dépense</label>
+            <label for="expense_date" class="form-label">Date de la Dépense <span class="text-danger">*</span></label>
             <input type="date" class="form-control" id="expense_date" name="expense_date" value="<?= htmlspecialchars($expense['expense_date']) ?>" required>
         </div>
         <div class="mb-3">
