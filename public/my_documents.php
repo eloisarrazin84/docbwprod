@@ -67,7 +67,7 @@ function getAllFoldersWithDocuments($userId, $userRole) {
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
     <style>
         body {
-            background-color: #f8f9fa;
+            background-color: #f5f7fa;
         }
 
         .btn-back {
@@ -84,118 +84,122 @@ function getAllFoldersWithDocuments($userId, $userRole) {
             background-color: #0056b3;
         }
 
-        .accordion-button {
-            background-color: #007bff;
+        .folder-card {
+            border: none;
+            border-radius: 15px;
+            transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
+            background: linear-gradient(135deg, #007bff, #0056b3);
             color: white;
+        }
+
+        .folder-card:hover {
+            transform: scale(1.05);
+            box-shadow: 0px 8px 20px rgba(0, 0, 0, 0.2);
+        }
+
+        .folder-card i {
+            font-size: 2.5rem;
+        }
+
+        .card-title {
+            font-size: 1.5rem;
             font-weight: bold;
-            border-radius: 5px;
-            margin-bottom: 10px;
-            transition: background-color 0.3s;
-            padding: 10px;
         }
 
-        .accordion-button:hover {
-            background-color: #0056b3;
+        .card-actions {
+            margin-top: 10px;
         }
 
-        .accordion-button:not(.collapsed) {
-            background-color: #0056b3;
+        .card-actions a {
+            text-decoration: none;
+            color: white;
+            font-size: 14px;
+            margin-right: 10px;
+        }
+
+        .card-actions a:hover {
+            text-decoration: underline;
+        }
+
+        .document-list {
+            margin-top: 20px;
+            background-color: white;
+            padding: 15px;
+            border-radius: 10px;
             box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
         }
 
-        .accordion-body {
-            padding: 15px 20px;
-            background-color: #f0f0f0;
-            border-radius: 5px;
+        .document-list h4 {
+            font-size: 1.2rem;
+            color: #333;
         }
 
         .btn-download {
             background-color: #28a745;
             color: white;
-            border: none;
-            padding: 5px 10px;
-            border-radius: 5px;
             font-size: 14px;
-            transition: background-color 0.3s;
+            border-radius: 5px;
         }
 
         .btn-download:hover {
             background-color: #218838;
         }
 
-        .table-striped tbody tr:nth-of-type(odd) {
-            background-color: #e9ecef;
+        .icon-folder {
+            font-size: 3rem;
+            margin-bottom: 15px;
         }
 
-        .table-hover tbody tr:hover {
-            background-color: #d6e4f0;
+        .document-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px;
+            border-bottom: 1px solid #e9ecef;
         }
 
-        .icon-file {
-            font-size: 1.2rem;
-            color: #007bff;
-        }
-
-        h1 {
-            font-size: 2rem;
-            font-weight: bold;
-            text-align: center;
-            color: #333;
-            margin-bottom: 30px;
+        .document-item:last-child {
+            border-bottom: none;
         }
     </style>
 </head>
 <body>
 <div class="container mt-5">
-    <a href="dashboard.php" class="btn-back mb-3"><i class="fas fa-arrow-left"></i> Retour au tableau de bord</a>
+    <a href="dashboard.php" class="btn-back mb-4"><i class="fas fa-arrow-left"></i> Retour au tableau de bord</a>
+    <h1 class="text-center mb-4">Mes Documents</h1>
 
-    <h1>Mes Documents</h1>
-
-    <?php if (!empty($folders)): ?>
-        <div class="accordion" id="documentsAccordion">
-            <?php foreach ($folders as $folderId => $folder): ?>
-                <div class="accordion-item">
-                    <h2 class="accordion-header" id="heading<?= $folderId ?>">
-                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse<?= $folderId ?>" aria-expanded="false" aria-controls="collapse<?= $folderId ?>">
-                            <i class="fas fa-folder icon-file"></i> <?= htmlspecialchars($folder['name']) ?>
-                        </button>
-                    </h2>
-                    <div id="collapse<?= $folderId ?>" class="accordion-collapse collapse" aria-labelledby="heading<?= $folderId ?>" data-bs-parent="#documentsAccordion">
-                        <div class="accordion-body">
-                            <?php if (!empty($folder['documents'])): ?>
-                                <table class="table table-striped table-hover">
-                                    <thead class="table-light">
-                                        <tr>
-                                            <th><i class="fas fa-file"></i> Nom du Document</th>
-                                            <th>Date d'Upload</th>
-                                            <th>Actions</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <?php foreach ($folder['documents'] as $document): ?>
-                                            <tr>
-                                                <td><i class="fas fa-file-pdf"></i> <?= htmlspecialchars($document['name']) ?></td>
-                                                <td><?= htmlspecialchars($document['upload_date']) ?></td>
-                                                <td>
-                                                    <a href="/uploads/<?= htmlspecialchars($document['name']) ?>" class="btn btn-download btn-sm" download>
-                                                        <i class="fas fa-download"></i> Télécharger
-                                                    </a>
-                                                </td>
-                                            </tr>
-                                        <?php endforeach; ?>
-                                    </tbody>
-                                </table>
-                            <?php else: ?>
-                                <p class="text-muted">Aucun document dans ce dossier.</p>
-                            <?php endif; ?>
-                        </div>
+    <div class="row">
+        <?php foreach ($folders as $folderId => $folder): ?>
+            <div class="col-md-4 col-sm-6 mb-4">
+                <div class="card folder-card text-center p-3">
+                    <i class="fas fa-folder icon-folder"></i>
+                    <h5 class="card-title"><?= htmlspecialchars($folder['name']) ?></h5>
+                    <div class="card-actions">
+                        <a href="#collapse<?= $folderId ?>" data-bs-toggle="collapse" aria-expanded="false" class="btn btn-light btn-sm">
+                            <i class="fas fa-eye"></i> Voir les documents
+                        </a>
                     </div>
                 </div>
-            <?php endforeach; ?>
-        </div>
-    <?php else: ?>
-        <p class="text-center">Aucun document disponible.</p>
-    <?php endif; ?>
+            </div>
+            <div class="col-12 collapse" id="collapse<?= $folderId ?>">
+                <div class="document-list">
+                    <h4>Documents dans le dossier "<?= htmlspecialchars($folder['name']) ?>"</h4>
+                    <?php if (!empty($folder['documents'])): ?>
+                        <?php foreach ($folder['documents'] as $document): ?>
+                            <div class="document-item">
+                                <span><i class="fas fa-file-alt text-muted"></i> <?= htmlspecialchars($document['name']) ?></span>
+                                <a href="/uploads/<?= htmlspecialchars($document['name']) ?>" class="btn btn-download btn-sm" download>
+                                    <i class="fas fa-download"></i> Télécharger
+                                </a>
+                            </div>
+                        <?php endforeach; ?>
+                    <?php else: ?>
+                        <p class="text-muted">Aucun document disponible.</p>
+                    <?php endif; ?>
+                </div>
+            </div>
+        <?php endforeach; ?>
+    </div>
 </div>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
 </body>
