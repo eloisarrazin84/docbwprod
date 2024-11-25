@@ -318,11 +318,11 @@ function exportExpensesToExcel($expenses) {
                                     <td>
                                         <form method="POST" style="display: inline;">
                                             <input type="hidden" name="expense_id" value="<?= htmlspecialchars($expense['id']) ?>">
-                                            <select name="status" class="form-select form-select-sm d-inline-block" style="width: auto;">
-                                                <option value="soumise" <?= $expense['status'] === 'soumise' ? 'selected' : '' ?>>Soumise</option>
-                                                <option value="approuvée" <?= $expense['status'] === 'approuvée' ? 'selected' : '' ?>>Approuvée</option>
-                                                <option value="rejetée" <?= $expense['status'] === 'rejetée' ? 'selected' : '' ?>>Rejetée</option>
-                                            </select>
+                                           <select name="status" class="form-select form-select-sm d-inline-block" style="width: auto;">
+    <option value="soumise" <?= $expense['status'] === 'soumise' ? 'selected' : '' ?>>Soumise</option>
+    <option value="approuvé" <?= $expense['status'] === 'approuvé' ? 'selected' : '' ?>>Approuvé</option>
+    <option value="rejeté" <?= $expense['status'] === 'rejeté' ? 'selected' : '' ?>>Rejeté</option>
+</select>
                                             <button type="submit" name="update_status" class="btn btn-primary btn-sm">Mettre à jour</button>
                                         </form>
                                         <form method="POST" style="display: inline;">
