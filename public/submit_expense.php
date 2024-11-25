@@ -70,11 +70,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         .btn-primary {
             width: 100%;
         }
+        .alert {
+            margin-bottom: 20px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
     </style>
 </head>
 <body>
 <div class="container">
-    <h1 class="text-center mb-4">Soumettre une note de frais</h1>
+    <h1 class="text-center mb-4">Soumettre une Note de Frais</h1>
 
     <?php if ($error): ?>
         <div class="alert alert-danger"><?= htmlspecialchars($error) ?></div>
@@ -85,30 +91,36 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <?php endif; ?>
 
     <form method="POST" enctype="multipart/form-data">
-        <div class="mb-3">
+        <div class="form-group">
             <label for="description" class="form-label">Description</label>
-            <input type="text" class="form-control" id="description" name="description" required>
+            <input type="text" class="form-control" id="description" name="description" placeholder="Exemple : Taxi pour conférence" required>
         </div>
-        <div class="mb-3">
-            <label for="amount" class="form-label">Montant</label>
-            <input type="number" step="0.01" class="form-control" id="amount" name="amount" required>
+        <div class="form-group">
+            <label for="amount" class="form-label">Montant (€)</label>
+            <input type="number" step="0.01" class="form-control" id="amount" name="amount" min="0.01" placeholder="Exemple : 25.50" required>
         </div>
-        <div class="mb-3">
+        <div class="form-group">
             <label for="category" class="form-label">Catégorie</label>
             <select class="form-control" id="category" name="category" required>
+                <option value="" disabled selected>Choisissez une catégorie</option>
                 <option value="transport">Transport</option>
                 <option value="repas">Repas</option>
                 <option value="hebergement">Hébergement</option>
                 <option value="autre">Autre</option>
             </select>
         </div>
-        <div class="mb-3">
+        <div class="form-group">
             <label for="receipt" class="form-label">Justificatif (optionnel)</label>
             <input type="file" class="form-control" id="receipt" name="receipt" accept="image/*,application/pdf">
+            <small class="text-muted">Formats acceptés : images, PDF. Taille max : 5 Mo</small>
         </div>
         <button type="submit" class="btn btn-primary">Soumettre</button>
     </form>
 </div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
+
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
