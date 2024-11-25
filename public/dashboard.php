@@ -116,6 +116,14 @@ if ($profileImage) {
                 width: 100%;
             }
         }
+        .category-title {
+            margin-top: 20px;
+            margin-bottom: 20px;
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #333;
+            text-align: center;
+        }
     </style>
 </head>
 <body>
@@ -136,7 +144,8 @@ if ($profileImage) {
 
 <div class="container mt-5">
     <?php if (getUserRole() === 'admin'): ?>
-        <!-- Tableau de bord Admin -->
+        <!-- Section Administration -->
+        <div class="category-title">Administration</div>
         <div class="row">
             <div class="col-md-4 col-sm-12">
                 <div class="card text-white bg-primary mb-3 shadow">
@@ -162,6 +171,29 @@ if ($profileImage) {
                     <div class="card-body text-center">
                         <p class="card-text">Consulter et gérer les notes de frais des utilisateurs.</p>
                         <a href="manage_expenses.php" class="btn btn-light"><i class="fas fa-arrow-right"></i> Gérer</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Section Utilisateur -->
+        <div class="category-title">Utilisateur</div>
+        <div class="row">
+            <div class="col-md-4 col-sm-12">
+                <div class="card text-white bg-secondary mb-3 shadow">
+                    <div class="card-header text-center"><i class="fas fa-folder-open"></i> Mes Documents</div>
+                    <div class="card-body text-center">
+                        <p class="card-text">Accédez aux documents qui vous sont assignés.</p>
+                        <a href="my_documents.php" class="btn btn-light"><i class="fas fa-arrow-right"></i> Voir mes documents</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 col-sm-12">
+                <div class="card text-white bg-info mb-3 shadow">
+                    <div class="card-header text-center"><i class="fas fa-file-invoice-dollar"></i> Mes Notes de Frais</div>
+                    <div class="card-body text-center">
+                        <p class="card-text">Suivez vos notes de frais et soumettez-en de nouvelles.</p>
+                        <a href="user_expenses.php" class="btn btn-light"><i class="fas fa-arrow-right"></i> Accéder</a>
                     </div>
                 </div>
             </div>
