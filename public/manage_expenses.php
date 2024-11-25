@@ -5,8 +5,8 @@ require '../src/session_manager.php';
 
 requireAdmin(); // Vérifie si l'utilisateur est administrateur
 
-// Récupérer toutes les notes de frais
-$expenses = listAllExpenses();
+// Récupérer toutes les notes de frais sauf celles en statut "brouillon"
+$expenses = listSubmittedExpenses();
 
 // Gestion des actions
 $success = '';
@@ -28,10 +28,31 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if (deleteExpense($expenseId)) {
             $success = "La note de frais #{$expenseId} a été supprimée avec succès.";
             // Recharger les notes après suppression
-            $expenses = listAllExpenses();
+            $expenses = listSubmittedExpenses();
         } else {
             $error = "Erreur lors de la suppression de la note de frais.";
         }
+    }
+}
+
+/**
+ * Fonction pour récupérer uniquement les notes de frais soumises ou approuvées
+ */
+function listSubmittedExpenses() {
+    global $pdo;
+    try {
+        $stmt = $pdo->prepare("
+            SELECT e.*, u.name AS user_name, u.email AS user_email 
+            FROM expense_notes e 
+            JOIN users u ON e.user_id = u.id 
+            WHERE e.status != 'brouillon'
+            ORDER BY e.date_submitted DESC
+        ");
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    } catch (PDOException $e) {
+        error_log("Erreur PDO : " . $e->getMessage());
+        return [];
     }
 }
 ?>
@@ -141,7 +162,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                     <td><?= htmlspecialchars($expense['description'] ?? 'N/A') ?></td>
                                     <td><?= htmlspecialchars($expense['amount'] ?? '0.00') ?></td>
                                     <td><?= htmlspecialchars($expense['category'] ?? 'N/A') ?></td>
-                                    <td><?= htmlspecialchars($expense['status'] ?? 'en attente') ?></td>
+                                    <td><?= htmlspecialchars($expense['status'] ?? 'soumise') ?></td>
                                     <td><?= htmlspecialchars($expense['date_submitted'] ?? 'N/A') ?></td>
                                     <td>
                                         <?= htmlspecialchars($expense['user_name'] ?? 'Inconnu') ?> 
@@ -160,7 +181,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                         <form method="POST" style="display: inline;">
                                             <input type="hidden" name="expense_id" value="<?= htmlspecialchars($expense['id']) ?>">
                                             <select name="status" class="form-select form-select-sm d-inline-block" style="width: auto;">
-                                                <option value="en attente" <?= $expense['status'] === 'en attente' ? 'selected' : '' ?>>En attente</option>
+                                                <option value="soumise" <?= $expense['status'] === 'soumise' ? 'selected' : '' ?>>Soumise</option>
                                                 <option value="approuvée" <?= $expense['status'] === 'approuvée' ? 'selected' : '' ?>>Approuvée</option>
                                                 <option value="rejetée" <?= $expense['status'] === 'rejetée' ? 'selected' : '' ?>>Rejetée</option>
                                             </select>
