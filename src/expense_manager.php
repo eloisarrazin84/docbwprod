@@ -52,13 +52,13 @@ function listAllExpenses() {
 
 function updateExpenseStatus($expenseId, $status) {
     global $pdo;
-    try {
-        // Validation du statut
-        $validStatuses = ['brouillon', 'soumise', 'approuvée', 'rejetée'];
-        if (!in_array($status, $validStatuses, true)) {
-            throw new InvalidArgumentException("Statut invalide : $status");
-        }
+    $validStatuses = ['brouillon', 'soumise', 'approuvé', 'rejeté']; // Correspond à l'ENUM
+    if (!in_array($status, $validStatuses)) {
+        error_log("Erreur : Statut invalide '{$status}' transmis.");
+        return false;
+    }
 
+    try {
         $stmt = $pdo->prepare("
             UPDATE expense_notes 
             SET status = ? 
@@ -66,9 +66,6 @@ function updateExpenseStatus($expenseId, $status) {
         ");
         $stmt->execute([$status, $expenseId]);
         return true;
-    } catch (InvalidArgumentException $e) {
-        error_log("Erreur de validation : " . $e->getMessage());
-        return false;
     } catch (PDOException $e) {
         error_log("Erreur PDO : " . $e->getMessage());
         return false;
