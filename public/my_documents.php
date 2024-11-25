@@ -89,9 +89,9 @@ function getAllFoldersWithDocuments($userId, $userRole) {
             border-radius: 10px;
             background: linear-gradient(135deg, #007bff, #0056b3);
             color: white;
-            padding: 20px;
+            padding: 15px;
             text-align: center;
-            height: 150px;
+            height: 120px;
             display: flex;
             flex-direction: column;
             justify-content: space-between;
@@ -99,42 +99,40 @@ function getAllFoldersWithDocuments($userId, $userRole) {
         }
 
         .folder-card:hover {
-            transform: scale(1.05);
-            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.2);
+            transform: scale(1.03);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
         }
 
         .folder-card i {
-            font-size: 2rem;
-            margin-bottom: 10px;
+            font-size: 1.8rem;
         }
 
         .folder-card h5 {
-            font-size: 1.2rem;
+            font-size: 1rem;
             font-weight: bold;
             margin: 0;
         }
 
         .card-actions a {
-            display: inline-block;
-            text-decoration: none;
-            font-size: 14px;
-            color: #fff;
-            background-color: rgba(0, 0, 0, 0.7);
+            font-size: 12px;
             padding: 5px 10px;
+            color: #fff;
+            background-color: #003d66;
             border-radius: 5px;
+            text-decoration: none;
             transition: background-color 0.3s ease;
         }
 
         .card-actions a:hover {
-            background-color: rgba(0, 0, 0, 0.9);
+            background-color: #002846;
         }
 
         .document-list {
             background-color: #fff;
             border-radius: 10px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-            padding: 20px;
-            margin-top: 20px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            padding: 15px;
+            margin: 15px 0;
         }
 
         .document-item {
@@ -160,16 +158,38 @@ function getAllFoldersWithDocuments($userId, $userRole) {
             color: #333;
             margin-bottom: 30px;
         }
+
+        .accordion-header {
+            margin-top: 10px;
+        }
+
+        .accordion-button {
+            background-color: #007bff;
+            color: white;
+            font-size: 14px;
+            border: none;
+            border-radius: 5px;
+            margin-bottom: 10px;
+        }
+
+        .accordion-button:not(.collapsed) {
+            background-color: #0056b3;
+        }
+
+        .accordion-body {
+            background-color: #f8f9fa;
+            border-radius: 5px;
+        }
     </style>
 </head>
 <body>
-<div class="container mt-5">
+<div class="container mt-4">
     <a href="dashboard.php" class="btn-back mb-4"><i class="fas fa-arrow-left"></i> Retour au tableau de bord</a>
     <h1 class="mb-4">Mes Documents</h1>
 
-    <div class="row">
+    <div class="row g-3">
         <?php foreach ($folders as $folderId => $folder): ?>
-            <div class="col-md-4 col-sm-6 mb-3">
+            <div class="col-md-4 col-sm-6">
                 <div class="card folder-card">
                     <i class="fas fa-folder"></i>
                     <h5><?= htmlspecialchars($folder['name']) ?></h5>
