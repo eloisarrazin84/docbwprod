@@ -195,7 +195,7 @@ function getAllFoldersWithDocuments($userId, $userRole) {
                     <h5><?= htmlspecialchars($folder['name']) ?></h5>
                     <div class="card-actions">
                         <a href="#collapse<?= $folderId ?>" data-bs-toggle="collapse" aria-expanded="false">
-                            <i class="fas fa-eye"></i> Voir les documents
+                            Voir les documents
                         </a>
                     </div>
                 </div>
