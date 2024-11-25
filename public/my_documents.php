@@ -19,7 +19,6 @@ $folders = getAllFoldersWithDocuments($userId, $userRole);
 function getAllFoldersWithDocuments($userId, $userRole) {
     global $pdo;
     try {
-        // Si l'utilisateur est admin, il voit tous ses propres dossiers
         $query = "
             SELECT f.id AS folder_id, f.name AS folder_name, d.id AS document_id, d.file_name, d.upload_date 
             FROM folders f
@@ -63,7 +62,7 @@ function getAllFoldersWithDocuments($userId, $userRole) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mes Documents</title>
+    <title><?= htmlspecialchars($pageTitle) ?></title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
     <style>
@@ -144,7 +143,7 @@ function getAllFoldersWithDocuments($userId, $userRole) {
 <div class="container mt-5">
     <a href="dashboard.php" class="btn-back mb-3"><i class="fas fa-arrow-left"></i> Retour au tableau de bord</a>
 
-    <h1>Mes Documents</h1>
+    <h1><?= htmlspecialchars($pageTitle) ?></h1>
 
     <?php if (!empty($folders)): ?>
         <div class="accordion" id="documentsAccordion">
