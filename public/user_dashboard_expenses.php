@@ -130,6 +130,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_expense_id']))
                             <th>Description</th>
                             <th>Montant (€)</th>
                             <th>Catégorie</th>
+                            <th>Date de Dépense</th>
+                            <th>Commentaire</th>
                             <th>Statut</th>
                             <th>Actions</th>
                         </tr>
@@ -141,6 +143,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_expense_id']))
                                     <td><?= htmlspecialchars($expense['description']) ?></td>
                                     <td><?= htmlspecialchars($expense['amount']) ?></td>
                                     <td><?= htmlspecialchars($expense['category']) ?></td>
+                                    <td><?= htmlspecialchars($expense['expense_date'] ?? 'N/A') ?></td>
+                                    <td><?= htmlspecialchars($expense['comment'] ?? 'Aucun') ?></td>
                                     <td>
                                         <span class="badge 
                                             <?= $expense['status'] === 'brouillon' ? 'bg-warning text-dark' : 
@@ -168,7 +172,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_expense_id']))
                             <?php endforeach; ?>
                         <?php else: ?>
                             <tr>
-                                <td colspan="5" class="text-center">Aucune note de frais trouvée.</td>
+                                <td colspan="7" class="text-center">Aucune note de frais trouvée.</td>
                             </tr>
                         <?php endif; ?>
                     </tbody>
