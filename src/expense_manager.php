@@ -5,13 +5,13 @@ function createExpense($userId, $description, $amount, $category, $receiptPath =
     global $pdo;
     try {
         $stmt = $pdo->prepare("
-            INSERT INTO expense_notes (user_id, description, amount, category, receipt_path) 
-            VALUES (?, ?, ?, ?, ?)
+            INSERT INTO expense_notes (user_id, description, amount, category, receipt_path, status) 
+            VALUES (?, ?, ?, ?, ?, 'brouillon')
         ");
         $stmt->execute([$userId, $description, $amount, $category, $receiptPath]);
         return true;
     } catch (PDOException $e) {
-        error_log("Erreur PDO (createExpense) : " . $e->getMessage());
+        error_log("Erreur PDO : " . $e->getMessage());
         return false;
     }
 }
@@ -19,11 +19,11 @@ function createExpense($userId, $description, $amount, $category, $receiptPath =
 function listExpensesByUser($userId) {
     global $pdo;
     try {
-        $stmt = $pdo->prepare("SELECT * FROM expense_notes WHERE user_id = ?");
+        $stmt = $pdo->prepare("SELECT * FROM expense_notes WHERE user_id = ? ORDER BY date_submitted DESC");
         $stmt->execute([$userId]);
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     } catch (PDOException $e) {
-        error_log("Erreur PDO (listExpensesByUser) : " . $e->getMessage());
+        error_log("Erreur PDO : " . $e->getMessage());
         return [];
     }
 }
@@ -31,24 +31,10 @@ function listExpensesByUser($userId) {
 function listAllExpenses() {
     global $pdo;
     try {
-        $stmt = $pdo->query("
-            SELECT 
-                e.id, 
-                e.description, 
-                e.amount, 
-                e.category, 
-                e.status, 
-                e.date_submitted, 
-                e.receipt_path, 
-                u.name AS user_name, 
-                u.email AS user_email
-            FROM expense_notes e
-            INNER JOIN users u ON e.user_id = u.id
-            ORDER BY e.date_submitted DESC
-        ");
+        $stmt = $pdo->query("SELECT e.*, u.name AS user_name, u.email AS user_email FROM expense_notes e JOIN users u ON e.user_id = u.id ORDER BY e.date_submitted DESC");
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     } catch (PDOException $e) {
-        error_log("Erreur PDO (listAllExpenses) : " . $e->getMessage());
+        error_log("Erreur PDO : " . $e->getMessage());
         return [];
     }
 }
@@ -60,19 +46,31 @@ function updateExpenseStatus($expenseId, $status) {
         $stmt->execute([$status, $expenseId]);
         return true;
     } catch (PDOException $e) {
-        error_log("Erreur PDO (updateExpenseStatus) : " . $e->getMessage());
+        error_log("Erreur PDO : " . $e->getMessage());
         return false;
     }
 }
 
-function getExpenseById($expenseId) {
+function deleteExpense($expenseId) {
+    global $pdo;
+    try {
+        $stmt = $pdo->prepare("DELETE FROM expense_notes WHERE id = ?");
+        $stmt->execute([$expenseId]);
+        return true;
+    } catch (PDOException $e) {
+        error_log("Erreur PDO : " . $e->getMessage());
+        return false;
+    }
+}
+
+function getExpenseDetails($expenseId) {
     global $pdo;
     try {
         $stmt = $pdo->prepare("SELECT * FROM expense_notes WHERE id = ?");
         $stmt->execute([$expenseId]);
         return $stmt->fetch(PDO::FETCH_ASSOC);
     } catch (PDOException $e) {
-        error_log("Erreur PDO (getExpenseById) : " . $e->getMessage());
+        error_log("Erreur PDO : " . $e->getMessage());
         return null;
     }
 }
