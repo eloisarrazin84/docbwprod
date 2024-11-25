@@ -1,12 +1,21 @@
 <?php
+session_start(); // Démarre la session
+require '../src/session_manager.php';
 require '../src/db_connect.php';
 require '../src/expense_manager.php';
-require '../src/session_manager.php';
 
 requireLogin(); // Vérifie si l'utilisateur est connecté
 
-// Récupérer l'ID de la note de frais
-if (!isset($_GET['id']) || empty($_GET['id'])) {
+// Redirige si l'utilisateur n'est pas connecté ou si user_id est introuvable
+if (!isset($_SESSION['user_id'])) {
+    header('Location: login.php');
+    exit();
+}
+
+$userId = $_SESSION['user_id']; // Définit l'utilisateur connecté
+
+// Vérifie si une ID d'expense est fournie
+if (!isset($_GET['id']) || !is_numeric($_GET['id'])) {
     header('Location: user_dashboard_expenses.php');
     exit();
 }
@@ -14,47 +23,34 @@ if (!isset($_GET['id']) || empty($_GET['id'])) {
 $expenseId = intval($_GET['id']);
 $expense = getExpenseDetails($expenseId);
 
-if (!$expense || $expense['user_id'] != $_SESSION['user_id']) {
+// Vérifie si la dépense appartient bien à l'utilisateur connecté
+if ($expense['user_id'] != $userId) {
     header('Location: user_dashboard_expenses.php');
     exit();
 }
 
-$success = '';
-$error = '';
-
-// Gestion de la soumission du formulaire
+// Gestion des mises à jour
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $description = trim($_POST['description'] ?? '');
-    $amount = floatval($_POST['amount'] ?? 0);
-    $category = $_POST['category'] ?? '';
-    $expenseDate = $_POST['expense_date'] ?? null;
-    $comment = trim($_POST['comment'] ?? '');
+    $description = trim($_POST['description']);
+    $amount = floatval($_POST['amount']);
+    $category = trim($_POST['category']);
+    $expenseDate = $_POST['expense_date'];
+    $comment = trim($_POST['comment']);
 
-    // Validation des champs
-    if (empty($description)) {
-        $error = 'La description est obligatoire.';
-    } elseif ($amount <= 0) {
-        $error = 'Le montant doit être supérieur à 0.';
-    } elseif (empty($category)) {
-        $error = 'La catégorie est obligatoire.';
+    if (updateExpense($expenseId, $description, $amount, $category, $expenseDate, $comment)) {
+        header('Location: user_dashboard_expenses.php');
+        exit();
     } else {
-        // Mise à jour de la note de frais
-        if (updateExpense($expenseId, $description, $amount, $category, $expenseDate, $comment)) {
-            $success = 'Note de frais mise à jour avec succès.';
-            // Rafraîchir les données
-            $expense = getExpenseDetails($expenseId);
-        } else {
-            $error = 'Erreur lors de la mise à jour de la note de frais.';
-        }
+        $error = "Erreur lors de la mise à jour de la note de frais.";
     }
 }
 ?>
-<!DOCTYPE html>
+!DOCTYPE html>
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Modifier une Note de Frais</title>
+    <title>Modifier la Note de Frais</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
         body {
@@ -88,47 +84,41 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     </style>
 </head>
 <body>
-<div class="container">
-    <h1 class="text-center mb-4">Modifier une Note de Frais</h1>
+<div class="container mt-5">
+    <h1 class="text-center">Modifier la Note de Frais</h1>
 
-    <?php if ($success): ?>
-        <div class="alert alert-success"><?= htmlspecialchars($success) ?></div>
-    <?php endif; ?>
-
-    <?php if ($error): ?>
+    <?php if (!empty($error)): ?>
         <div class="alert alert-danger"><?= htmlspecialchars($error) ?></div>
     <?php endif; ?>
 
     <form method="POST">
-        <div class="form-group">
+        <div class="mb-3">
             <label for="description" class="form-label">Description</label>
             <input type="text" class="form-control" id="description" name="description" value="<?= htmlspecialchars($expense['description']) ?>" required>
         </div>
-        <div class="form-group">
+        <div class="mb-3">
             <label for="amount" class="form-label">Montant (€)</label>
-            <input type="number" step="0.01" class="form-control" id="amount" name="amount" value="<?= htmlspecialchars($expense['amount']) ?>" min="0.01" required>
+            <input type="number" class="form-control" id="amount" name="amount" step="0.01" value="<?= htmlspecialchars($expense['amount']) ?>" required>
         </div>
-        <div class="form-group">
+        <div class="mb-3">
             <label for="category" class="form-label">Catégorie</label>
-            <select class="form-control" id="category" name="category" required>
-                <option value="" disabled <?= empty($expense['category']) ? 'selected' : '' ?>>Choisissez une catégorie</option>
+            <select id="category" name="category" class="form-select" required>
                 <option value="transport" <?= $expense['category'] === 'transport' ? 'selected' : '' ?>>Transport</option>
                 <option value="repas" <?= $expense['category'] === 'repas' ? 'selected' : '' ?>>Repas</option>
                 <option value="hebergement" <?= $expense['category'] === 'hebergement' ? 'selected' : '' ?>>Hébergement</option>
                 <option value="autre" <?= $expense['category'] === 'autre' ? 'selected' : '' ?>>Autre</option>
             </select>
         </div>
-        <div class="form-group">
-            <label for="expense_date" class="form-label">Date de Dépense</label>
-            <input type="date" class="form-control" id="expense_date" name="expense_date" value="<?= htmlspecialchars($expense['expense_date']) ?>">
+        <div class="mb-3">
+            <label for="expense_date" class="form-label">Date de la Dépense</label>
+            <input type="date" class="form-control" id="expense_date" name="expense_date" value="<?= htmlspecialchars($expense['expense_date']) ?>" required>
         </div>
-        <div class="form-group">
+        <div class="mb-3">
             <label for="comment" class="form-label">Commentaire</label>
-            <textarea class="form-control" id="comment" name="comment" rows="3"><?= htmlspecialchars($expense['comment']) ?></textarea>
+            <textarea id="comment" name="comment" class="form-control"><?= htmlspecialchars($expense['comment']) ?></textarea>
         </div>
         <button type="submit" class="btn btn-primary">Mettre à jour</button>
     </form>
 </div>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
