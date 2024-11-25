@@ -26,8 +26,21 @@ $expenseId = intval($_GET['id']);
 error_log("Expense ID provided: $expenseId");
 
 // Récupère les détails de la dépense
-$expense = getExpenseDetails($expenseId);
-
+function getExpenseDetails($expenseId) {
+    global $pdo;
+    try {
+        $stmt = $pdo->prepare("
+            SELECT id, user_id, description, amount, category, expense_date, comment, status, receipt_path 
+            FROM expense_notes 
+            WHERE id = ?
+        ");
+        $stmt->execute([$expenseId]);
+        return $stmt->fetch(PDO::FETCH_ASSOC);
+    } catch (PDOException $e) {
+        error_log("Erreur PDO : " . $e->getMessage());
+        return null;
+    }
+}
 // Vérifie si la dépense existe
 if (!$expense) {
     error_log("Erreur : Aucune note de frais trouvée pour l'ID spécifié : $expenseId");
