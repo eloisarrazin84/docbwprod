@@ -1,6 +1,9 @@
 <?php
 // Démarrer la session si elle n'est pas déjà démarrée
 if (session_status() === PHP_SESSION_NONE) {
+    if (headers_sent($file, $line)) {
+        die("Erreur : les en-têtes ont déjà été envoyés dans le fichier $file à la ligne $line.");
+    }
     session_start();
 }
 
@@ -37,7 +40,7 @@ function redirectTo($location, $errorMessage = null) {
         header("Location: $location");
         exit();
     } else {
-        die("Redirection échouée : les en-têtes ont déjà été envoyés. Veuillez vérifier votre code.");
+        die("Erreur : Redirection échouée car les en-têtes HTTP ont déjà été envoyés.");
     }
 }
 ?>
