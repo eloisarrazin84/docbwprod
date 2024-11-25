@@ -8,9 +8,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $login = $_POST['login']; // Peut être un identifiant ou un e-mail
     $password = $_POST['password'];
 
-    // Rechercher l'utilisateur par e-mail ou identifiant
-    $stmt = $pdo->prepare("SELECT id, name, identifier, password, role FROM users WHERE email = ? OR identifier = ?");
-    $stmt->execute([$login, $login]);
+    // Rechercher l'utilisateur par e-mail
+    $stmt = $pdo->prepare("SELECT id, name, email, password, role FROM users WHERE email = ?");
+    $stmt->execute([$login]);
     $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
     if ($user && password_verify($password, $user['password'])) {
@@ -23,7 +23,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         header('Location: dashboard.php');
         exit();
     } else {
-        $error = 'Identifiant, e-mail ou mot de passe incorrect.';
+        $error = 'E-mail ou mot de passe incorrect.';
     }
 }
 ?>
@@ -82,7 +82,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <?php endif; ?>
     <form method="POST">
         <div class="mb-3">
-            <label for="login" class="form-label">Identifiant ou E-mail</label>
+            <label for="login" class="form-label">E-mail</label>
             <input type="text" class="form-control" id="login" name="login" required>
         </div>
         <div class="mb-3">
