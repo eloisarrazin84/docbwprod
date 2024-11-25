@@ -6,15 +6,15 @@ require '../src/expense_manager.php';
 
 requireLogin(); // Vérifie si l'utilisateur est connecté
 
-// Vérifie si l'utilisateur est connecté
-if (!isset($_SESSION['user_id'])) {
+// Vérifie si l'utilisateur est connecté et si la session contient "user_id"
+if (empty($_SESSION['user_id'])) {
     header('Location: login.php');
     exit();
 }
 
 $userId = $_SESSION['user_id']; // Définit l'utilisateur connecté
 
-// Vérifie si une ID de dépense est fournie
+// Vérifie si une ID de dépense est fournie et valide
 if (!isset($_GET['id']) || !is_numeric($_GET['id'])) {
     header('Location: user_dashboard_expenses.php');
     exit();
@@ -30,7 +30,7 @@ if (!$expense) {
 }
 
 // Vérifie si la dépense appartient bien à l'utilisateur connecté
-if ($expense['user_id'] !== $userId) {
+if ((int)$expense['user_id'] !== (int)$userId) {
     header('Location: user_dashboard_expenses.php');
     exit();
 }
