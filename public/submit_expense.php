@@ -25,17 +25,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $error = 'La catégorie est obligatoire.';
     }
 
-    // Vérifie si un fichier justificatif a été téléchargé
+    // Gestion du téléchargement du justificatif
     if (empty($error) && isset($_FILES['receipt']) && $_FILES['receipt']['error'] === UPLOAD_ERR_OK) {
         $uploadDir = '/var/www/uploads/receipts/';
         if (!is_dir($uploadDir)) {
-            mkdir($uploadDir, 0777, true);
+            if (!mkdir($uploadDir, 0777, true) && !is_dir($uploadDir)) {
+                $error = 'Impossible de créer le répertoire pour les justificatifs.';
+            }
         }
-        $receiptPath = uniqid() . '-' . basename($_FILES['receipt']['name']);
-        $filePath = $uploadDir . $receiptPath;
 
-        if (!move_uploaded_file($_FILES['receipt']['tmp_name'], $filePath)) {
-            $error = 'Erreur lors du téléchargement du justificatif.';
+        if (empty($error)) {
+            $receiptPath = uniqid() . '-' . basename($_FILES['receipt']['name']);
+            $filePath = $uploadDir . $receiptPath;
+
+            if (!move_uploaded_file($_FILES['receipt']['tmp_name'], $filePath)) {
+                $error = 'Erreur lors du téléchargement du justificatif.';
+            }
         }
     }
 
@@ -93,9 +98,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     <?php if ($error): ?>
         <div class="alert alert-danger"><?= htmlspecialchars($error) ?></div>
-    <?php endif; ?>
-
-    <?php if ($success): ?>
+    <?php elseif ($success): ?>
         <div class="alert alert-success"><?= htmlspecialchars($success) ?></div>
     <?php endif; ?>
 
