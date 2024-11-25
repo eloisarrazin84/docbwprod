@@ -25,7 +25,7 @@ function listAllUsers() {
 
 $users = listAllUsers();
 
-// Récupérer toutes les notes de frais sauf celles en statut "brouillon"
+// Récupérer toutes les notes de frais avec les filtres
 $expenses = listSubmittedExpenses($categoryFilter, $statusFilter, $dateFilter, $userFilter);
 
 // Gestion des actions
@@ -38,6 +38,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $status = $_POST['status'];
         if (updateExpenseStatus($expenseId, $status)) {
             $success = "Le statut de la note de frais #{$expenseId} a été mis à jour.";
+            // Recharge les dépenses après la mise à jour
+            $expenses = listSubmittedExpenses($categoryFilter, $statusFilter, $dateFilter, $userFilter);
         } else {
             $error = "Erreur lors de la mise à jour du statut.";
         }
@@ -48,7 +50,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if (deleteExpense($expenseId)) {
             $success = "La note de frais #{$expenseId} a été supprimée avec succès.";
             // Recharger les notes après suppression
-            $expenses = listSubmittedExpenses();
+            $expenses = listSubmittedExpenses($categoryFilter, $statusFilter, $dateFilter, $userFilter);
         } else {
             $error = "Erreur lors de la suppression de la note de frais.";
         }
@@ -60,7 +62,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-// Fonction pour récupérer uniquement les notes de frais soumises ou approuvées
+// Fonction pour récupérer uniquement les notes de frais soumises ou approuvées avec des filtres
 function listSubmittedExpenses($category = '', $status = '', $date = '', $user = '') {
     global $pdo;
     try {
@@ -72,22 +74,22 @@ function listSubmittedExpenses($category = '', $status = '', $date = '', $user =
         ";
         $params = [];
 
-        if ($category) {
+        if (!empty($category)) {
             $query .= " AND e.category = ?";
             $params[] = $category;
         }
 
-        if ($status) {
+        if (!empty($status)) {
             $query .= " AND e.status = ?";
             $params[] = $status;
         }
 
-        if ($date) {
+        if (!empty($date)) {
             $query .= " AND e.expense_date = ?";
             $params[] = $date;
         }
 
-        if ($user) {
+        if (!empty($user)) {
             $query .= " AND e.user_id = ?";
             $params[] = $user;
         }
@@ -100,6 +102,43 @@ function listSubmittedExpenses($category = '', $status = '', $date = '', $user =
         error_log("Erreur PDO : " . $e->getMessage());
         return [];
     }
+}
+
+// Fonction pour exporter les données au format Excel
+function exportExpensesToExcel($expenses) {
+    header('Content-Type: application/vnd.ms-excel');
+    header('Content-Disposition: attachment;filename="expenses_export_' . date('Y-m-d') . '.xls"');
+    header('Cache-Control: max-age=0');
+
+    echo "<table border='1'>";
+    echo "<tr>
+        <th>ID</th>
+        <th>Description</th>
+        <th>Montant (€)</th>
+        <th>Catégorie</th>
+        <th>Statut</th>
+        <th>Date de Soumission</th>
+        <th>Date de Dépense</th>
+        <th>Utilisateur</th>
+        <th>Commentaire</th>
+    </tr>";
+
+    foreach ($expenses as $expense) {
+        echo "<tr>
+            <td>{$expense['id']}</td>
+            <td>{$expense['description']}</td>
+            <td>{$expense['amount']}</td>
+            <td>{$expense['category']}</td>
+            <td>{$expense['status']}</td>
+            <td>{$expense['date_submitted']}</td>
+            <td>{$expense['expense_date']}</td>
+            <td>{$expense['user_name']} ({$expense['user_email']})</td>
+            <td>{$expense['comment']}</td>
+        </tr>";
+    }
+
+    echo "</table>";
+    exit();
 }
 ?>
 <!DOCTYPE html>
