@@ -53,6 +53,12 @@ function listAllExpenses() {
 function updateExpenseStatus($expenseId, $status) {
     global $pdo;
     try {
+        // Validation du statut
+        $validStatuses = ['brouillon', 'soumise', 'approuvée', 'rejetée'];
+        if (!in_array($status, $validStatuses, true)) {
+            throw new InvalidArgumentException("Statut invalide : $status");
+        }
+
         $stmt = $pdo->prepare("
             UPDATE expense_notes 
             SET status = ? 
@@ -60,6 +66,9 @@ function updateExpenseStatus($expenseId, $status) {
         ");
         $stmt->execute([$status, $expenseId]);
         return true;
+    } catch (InvalidArgumentException $e) {
+        error_log("Erreur de validation : " . $e->getMessage());
+        return false;
     } catch (PDOException $e) {
         error_log("Erreur PDO : " . $e->getMessage());
         return false;
@@ -106,7 +115,16 @@ function getExpenseDetails($expenseId) {
             WHERE id = ?
         ");
         $stmt->execute([$expenseId]);
-        return $stmt->fetch(PDO::FETCH_ASSOC);
+        $expense = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        if (!$expense) {
+            throw new Exception("Aucune note de frais trouvée pour l'ID spécifié : $expenseId");
+        }
+
+        return $expense;
+    } catch (Exception $e) {
+        error_log("Erreur : " . $e->getMessage());
+        return null;
     } catch (PDOException $e) {
         error_log("Erreur PDO : " . $e->getMessage());
         return null;
