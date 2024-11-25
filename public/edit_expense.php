@@ -4,23 +4,23 @@ require '../src/session_manager.php';
 require '../src/db_connect.php';
 require '../src/expense_manager.php';
 
-// Vérifie si l'utilisateur est connecté
+requireLogin(); // Vérifie si l'utilisateur est connecté
+
+// Vérifie si l'utilisateur est connecté et si l'ID est défini dans la session
 if (!isset($_SESSION['user_id']) || empty($_SESSION['user_id'])) {
     header('Location: login.php');
     exit();
 }
 
-$userId = (int)$_SESSION['user_id']; // Définit l'utilisateur connecté
+$userId = intval($_SESSION['user_id']); // Définit l'utilisateur connecté
 
-// Vérifie si une ID de dépense est fournie et valide
+// Vérifie si une ID d'expense est fournie et valide
 if (!isset($_GET['id']) || !is_numeric($_GET['id'])) {
     header('Location: user_dashboard_expenses.php');
     exit();
 }
 
-$expenseId = (int)$_GET['id'];
-
-// Récupère les détails de la dépense
+$expenseId = intval($_GET['id']);
 $expense = getExpenseDetails($expenseId);
 
 // Vérifie si la dépense existe
@@ -30,27 +30,26 @@ if (!$expense) {
 }
 
 // Vérifie si la dépense appartient bien à l'utilisateur connecté
-if ((int)$expense['user_id'] !== $userId) {
+if ($expense['user_id'] !== $userId) {
     header('Location: user_dashboard_expenses.php');
     exit();
 }
 
-$error = '';
-$success = '';
+$error = ''; // Variable pour stocker les messages d'erreur
 
-// Gestion de la mise à jour
+// Gestion des mises à jour
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $description = trim($_POST['description'] ?? '');
-    $amount = floatval($_POST['amount'] ?? 0);
-    $category = trim($_POST['category'] ?? '');
-    $expenseDate = $_POST['expense_date'] ?? '';
-    $comment = trim($_POST['comment'] ?? '');
+    $description = trim($_POST['description']);
+    $amount = floatval($_POST['amount']);
+    $category = trim($_POST['category']);
+    $expenseDate = $_POST['expense_date'];
+    $comment = trim($_POST['comment']);
 
-    // Validation des champs obligatoires
+    // Valide les champs nécessaires
     if (empty($description) || $amount <= 0 || empty($category) || empty($expenseDate)) {
         $error = "Tous les champs obligatoires doivent être remplis.";
     } else {
-        // Mise à jour dans la base de données
+        // Met à jour la note de frais
         if (updateExpense($expenseId, $description, $amount, $category, $expenseDate, $comment)) {
             header('Location: user_dashboard_expenses.php');
             exit();
@@ -93,6 +92,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         .alert {
             margin-bottom: 20px;
         }
+        .form-group {
+            margin-bottom: 15px;
+        }
     </style>
 </head>
 <body>
@@ -103,35 +105,31 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <div class="alert alert-danger"><?= htmlspecialchars($error) ?></div>
     <?php endif; ?>
 
-    <?php if (!empty($success)): ?>
-        <div class="alert alert-success"><?= htmlspecialchars($success) ?></div>
-    <?php endif; ?>
-
     <form method="POST">
         <div class="mb-3">
-            <label for="description" class="form-label">Description <span class="text-danger">*</span></label>
-            <input type="text" class="form-control" id="description" name="description" value="<?= htmlspecialchars($expense['description'] ?? '') ?>" required>
+            <label for="description" class="form-label">Description</label>
+            <input type="text" class="form-control" id="description" name="description" value="<?= htmlspecialchars($expense['description']) ?>" required>
         </div>
         <div class="mb-3">
-            <label for="amount" class="form-label">Montant (€) <span class="text-danger">*</span></label>
-            <input type="number" class="form-control" id="amount" name="amount" step="0.01" value="<?= htmlspecialchars($expense['amount'] ?? 0) ?>" required>
+            <label for="amount" class="form-label">Montant (€)</label>
+            <input type="number" class="form-control" id="amount" name="amount" step="0.01" value="<?= htmlspecialchars($expense['amount']) ?>" required>
         </div>
         <div class="mb-3">
-            <label for="category" class="form-label">Catégorie <span class="text-danger">*</span></label>
+            <label for="category" class="form-label">Catégorie</label>
             <select id="category" name="category" class="form-select" required>
-                <option value="transport" <?= ($expense['category'] ?? '') === 'transport' ? 'selected' : '' ?>>Transport</option>
-                <option value="repas" <?= ($expense['category'] ?? '') === 'repas' ? 'selected' : '' ?>>Repas</option>
-                <option value="hebergement" <?= ($expense['category'] ?? '') === 'hebergement' ? 'selected' : '' ?>>Hébergement</option>
-                <option value="autre" <?= ($expense['category'] ?? '') === 'autre' ? 'selected' : '' ?>>Autre</option>
+                <option value="transport" <?= $expense['category'] === 'transport' ? 'selected' : '' ?>>Transport</option>
+                <option value="repas" <?= $expense['category'] === 'repas' ? 'selected' : '' ?>>Repas</option>
+                <option value="hebergement" <?= $expense['category'] === 'hebergement' ? 'selected' : '' ?>>Hébergement</option>
+                <option value="autre" <?= $expense['category'] === 'autre' ? 'selected' : '' ?>>Autre</option>
             </select>
         </div>
         <div class="mb-3">
-            <label for="expense_date" class="form-label">Date de la Dépense <span class="text-danger">*</span></label>
-            <input type="date" class="form-control" id="expense_date" name="expense_date" value="<?= htmlspecialchars($expense['expense_date'] ?? '') ?>" required>
+            <label for="expense_date" class="form-label">Date de la Dépense</label>
+            <input type="date" class="form-control" id="expense_date" name="expense_date" value="<?= htmlspecialchars($expense['expense_date']) ?>" required>
         </div>
         <div class="mb-3">
             <label for="comment" class="form-label">Commentaire</label>
-            <textarea id="comment" name="comment" class="form-control"><?= htmlspecialchars($expense['comment'] ?? '') ?></textarea>
+            <textarea id="comment" name="comment" class="form-control"><?= htmlspecialchars($expense['comment']) ?></textarea>
         </div>
         <button type="submit" class="btn btn-primary">Mettre à jour</button>
     </form>
