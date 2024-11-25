@@ -1,7 +1,7 @@
 <?php
 require '../src/db_connect.php';
-require '../src/expense_manager.php';
 require '../src/session_manager.php';
+require '../src/expense_manager.php';
 
 requireLogin(); // Vérifie si l'utilisateur est connecté
 
