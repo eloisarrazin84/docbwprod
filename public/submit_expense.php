@@ -8,8 +8,6 @@ requireLogin(); // Vérifie si l'utilisateur est connecté
 $error = '';
 $success = '';
 
-echo "Fichier expense_manager.php chargé correctement.";
-
 // Gestion de la soumission de la note de frais
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $userId = $_SESSION['user_id'];
