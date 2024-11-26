@@ -1,4 +1,3 @@
-
 <?php
 require '../src/session_manager.php';
 require '../src/db_connect.php';
