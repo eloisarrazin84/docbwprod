@@ -1,3 +1,4 @@
+
 <?php
 require '../src/session_manager.php';
 require '../src/db_connect.php';
@@ -34,6 +35,14 @@ if ($profileImage) {
         body {
             background-color: #f8f9fa;
         }
+         h1 {
+        text-align: center;
+        font-size: 2.5rem;
+        font-weight: bold;
+        color: #333;
+        margin-top: 20px;
+        margin-bottom: 40px;
+    }
         .card {
             transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
         }
@@ -94,14 +103,14 @@ if ($profileImage) {
             height: 100%;
             object-fit: cover;
         }
-        .category-title {
-            margin-top: 20px;
-            margin-bottom: 20px;
-            font-size: 1.5rem;
-            font-weight: bold;
-            color: #333;
-            text-align: center;
-        }
+        
+    .category-title {
+        text-align: center;
+        font-size: 2rem;
+        font-weight: bold;
+        color: #555;
+        margin-bottom: 30px;
+    }
         @media (max-width: 768px) {
             .card {
                 margin-bottom: 20px;
