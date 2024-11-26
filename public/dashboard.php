@@ -10,7 +10,7 @@ $userId = $_SESSION['user_id'];
 $userRole = getUserRole(); // admin ou user
 
 // Définir le titre de la page
-$pageTitle = ($userRole === 'admin') ? "Tableau de Bord Admin" : "Tableau de Bord Utilisateur";
+$pageTitle = "Tableau de Bord";
 
 // Récupération de l'image de profil ou icône par défaut
 $stmt = $pdo->prepare("SELECT profile_image FROM users WHERE id = ?");
@@ -159,27 +159,27 @@ if ($profileImage) {
                 </div>
             </div>
         </div>
-    <?php else: ?>
-        <!-- Section Utilisateur -->
-        <div class="row">
-            <div class="col-md-6 col-sm-12">
-                <div class="card text-white bg-info mb-3 shadow">
-                    <div class="card-header text-center"><i class="fas fa-folder-open"></i> Mes Documents</div>
-                    <div class="card-body text-center">
-                        <a href="my_documents.php" class="btn btn-light"><i class="fas fa-arrow-right"></i> Accéder</a>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-6 col-sm-12">
-                <div class="card text-white bg-secondary mb-3 shadow">
-                    <div class="card-header text-center"><i class="fas fa-file-invoice-dollar"></i> Mes Notes de Frais</div>
-                    <div class="card-body text-center">
-                        <a href="user_dashboard_expenses.php" class="btn btn-light"><i class="fas fa-arrow-right"></i> Accéder</a>
-                    </div>
+    <?php endif; ?>
+
+    <!-- Section Utilisateur (toujours affichée, même pour admin) -->
+    <div class="row">
+        <div class="col-md-6 col-sm-12">
+            <div class="card text-white bg-info mb-3 shadow">
+                <div class="card-header text-center"><i class="fas fa-folder-open"></i> Mes Documents</div>
+                <div class="card-body text-center">
+                    <a href="my_documents.php" class="btn btn-light"><i class="fas fa-arrow-right"></i> Accéder</a>
                 </div>
             </div>
         </div>
-    <?php endif; ?>
+        <div class="col-md-6 col-sm-12">
+            <div class="card text-white bg-secondary mb-3 shadow">
+                <div class="card-header text-center"><i class="fas fa-file-invoice-dollar"></i> Mes Notes de Frais</div>
+                <div class="card-body text-center">
+                    <a href="user_dashboard_expenses.php" class="btn btn-light"><i class="fas fa-arrow-right"></i> Accéder</a>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 </body>
 </html>
