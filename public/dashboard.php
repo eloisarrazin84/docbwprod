@@ -42,6 +42,14 @@ if ($profileImage) {
             margin-top: 20px;
             margin-bottom: 40px;
         }
+        .category-title {
+            text-align: center;
+            font-size: 2rem;
+            font-weight: bold;
+            color: #555;
+            margin-top: 20px;
+            margin-bottom: 30px;
+        }
         .card {
             transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
         }
@@ -53,7 +61,7 @@ if ($profileImage) {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 10px 20px;
+            padding: 20px;
             background-color: #fff;
             box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
             flex-wrap: wrap;
@@ -62,7 +70,6 @@ if ($profileImage) {
             max-height: 50px;
         }
         .dashboard-header h1 {
-            margin: 10px 0;
             flex-grow: 1;
             text-align: center;
         }
@@ -102,14 +109,6 @@ if ($profileImage) {
             height: 100%;
             object-fit: cover;
         }
-        .category-title {
-            text-align: center;
-            font-size: 1.8rem;
-            font-weight: bold;
-            color: #555;
-            margin-top: 40px;
-            margin-bottom: 20px;
-        }
         @media (max-width: 768px) {
             .card {
                 margin-bottom: 20px;
@@ -146,7 +145,7 @@ if ($profileImage) {
 </div>
 
 <div class="container mt-5">
-    <!-- Section Administration (si admin) -->
+    <!-- Section Administration -->
     <?php if ($userRole === 'admin'): ?>
         <div class="category-title">Administration</div>
         <div class="row">
