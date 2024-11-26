@@ -138,7 +138,6 @@ if ($profileImage) {
 </div>
 
 <div class="container mt-5">
-    <h1 class="text-center mb-4"><?= htmlspecialchars($pageTitle) ?></h1>
 
     <?php if ($userRole === 'admin'): ?>
         <!-- Section Administration -->
