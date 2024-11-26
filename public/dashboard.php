@@ -5,16 +5,12 @@ require '../src/folder_manager.php';
 
 requireLogin(); // Vérifie si l'utilisateur est connecté
 
-// Récupérer l'ID de l'utilisateur
+// Récupérer l'ID et le rôle de l'utilisateur
 $userId = $_SESSION['user_id'];
+$userRole = getUserRole(); // admin ou user
 
-// Définir le titre de la page selon le rôle de l'utilisateur
-if (getUserRole() === 'admin') {
-    $pageTitle = "Tableau de Bord Admin";
-} else {
-    $pageTitle = "Mes Dossiers";
-    $folders = listFoldersByUser($userId); // Récupère les dossiers pour l'utilisateur connecté
-}
+// Définir le titre de la page
+$pageTitle = ($userRole === 'admin') ? "Tableau de Bord Admin" : "Tableau de Bord Utilisateur";
 
 // Récupération de l'image de profil ou icône par défaut
 $stmt = $pdo->prepare("SELECT profile_image FROM users WHERE id = ?");
@@ -116,14 +112,6 @@ if ($profileImage) {
                 width: 100%;
             }
         }
-        .category-title {
-            margin-top: 20px;
-            margin-bottom: 20px;
-            font-size: 1.5rem;
-            font-weight: bold;
-            color: #333;
-            text-align: center;
-        }
     </style>
 </head>
 <body>
@@ -143,15 +131,13 @@ if ($profileImage) {
 </div>
 
 <div class="container mt-5">
-    <?php if (getUserRole() === 'admin'): ?>
+    <?php if ($userRole === 'admin'): ?>
         <!-- Section Administration -->
-        <div class="category-title">Administration</div>
         <div class="row">
             <div class="col-md-4 col-sm-12">
                 <div class="card text-white bg-primary mb-3 shadow">
                     <div class="card-header text-center"><i class="fas fa-users"></i> Gestion des Utilisateurs</div>
                     <div class="card-body text-center">
-                        <p class="card-text">Ajouter, modifier et supprimer des utilisateurs.</p>
                         <a href="user_management.php" class="btn btn-light"><i class="fas fa-arrow-right"></i> Gérer</a>
                     </div>
                 </div>
@@ -160,7 +146,6 @@ if ($profileImage) {
                 <div class="card text-white bg-success mb-3 shadow">
                     <div class="card-header text-center"><i class="fas fa-folder"></i> Gestion des Dossiers</div>
                     <div class="card-body text-center">
-                        <p class="card-text">Créer, modifier et supprimer des dossiers.</p>
                         <a href="folder_management.php" class="btn btn-light"><i class="fas fa-arrow-right"></i> Gérer</a>
                     </div>
                 </div>
@@ -169,66 +154,31 @@ if ($profileImage) {
                 <div class="card text-white bg-warning mb-3 shadow">
                     <div class="card-header text-center"><i class="fas fa-receipt"></i> Gestion des Notes de Frais</div>
                     <div class="card-body text-center">
-                        <p class="card-text">Consulter et gérer les notes de frais des utilisateurs.</p>
                         <a href="manage_expenses.php" class="btn btn-light"><i class="fas fa-arrow-right"></i> Gérer</a>
                     </div>
                 </div>
             </div>
         </div>
-
+    <?php else: ?>
         <!-- Section Utilisateur -->
-        <div class="category-title">Utilisateur</div>
         <div class="row">
-            <div class="col-md-4 col-sm-12">
-                <div class="card text-white bg-secondary mb-3 shadow">
+            <div class="col-md-6 col-sm-12">
+                <div class="card text-white bg-info mb-3 shadow">
                     <div class="card-header text-center"><i class="fas fa-folder-open"></i> Mes Documents</div>
                     <div class="card-body text-center">
-                        <p class="card-text">Accédez aux documents qui vous sont assignés.</p>
-                        <a href="my_documents.php" class="btn btn-light"><i class="fas fa-arrow-right"></i> Voir mes documents</a>
+                        <a href="my_documents.php" class="btn btn-light"><i class="fas fa-arrow-right"></i> Accéder</a>
                     </div>
                 </div>
             </div>
-            <div class="col-md-4 col-sm-12">
-                <div class="card text-white bg-info mb-3 shadow">
+            <div class="col-md-6 col-sm-12">
+                <div class="card text-white bg-secondary mb-3 shadow">
                     <div class="card-header text-center"><i class="fas fa-file-invoice-dollar"></i> Mes Notes de Frais</div>
                     <div class="card-body text-center">
-                        <p class="card-text">Suivez vos notes de frais.</p>
                         <a href="user_dashboard_expenses.php" class="btn btn-light"><i class="fas fa-arrow-right"></i> Accéder</a>
                     </div>
                 </div>
             </div>
         </div>
-    <?php else: ?>
-        <!-- Tableau de bord pour l'utilisateur -->
-        <h2 class="text-center mt-4">Mes Dossiers</h2>
-        <?php if (!empty($folders)): ?>
-            <div class="table-responsive">
-                <table class="table table-striped table-hover">
-                    <thead>
-                        <tr>
-                            <th>Nom du Dossier</th>
-                            <th>Date de Création</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <?php foreach ($folders as $folder): ?>
-                            <tr>
-                                <td><i class="fas fa-folder"></i> <?= htmlspecialchars($folder['name']) ?></td>
-                                <td><?= htmlspecialchars($folder['created_at']) ?></td>
-                                <td>
-                                    <a href="documents.php?folder_id=<?= $folder['id'] ?>" class="btn btn-info btn-sm">
-                                        <i class="fas fa-eye"></i> Voir les Documents
-                                    </a>
-                                </td>
-                            </tr>
-                        <?php endforeach; ?>
-                    </tbody>
-                </table>
-            </div>
-        <?php else: ?>
-            <p class="text-center">Aucun dossier disponible.</p>
-        <?php endif; ?>
     <?php endif; ?>
 </div>
 </body>
