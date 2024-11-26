@@ -149,123 +149,93 @@ function exportExpensesToExcel($expenses) {
     <title>Gestion des Notes de Frais</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
-<style>
-    body {
-        background-color: #f8f9fa;
-    }
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
 
-    .btn-back {
-        background-color: #007bff;
-        color: white;
-        text-decoration: none;
-        border-radius: 5px;
-        padding: 10px 20px;
-        transition: background-color 0.3s ease;
-        font-size: 14px;
-    }
+        .btn-back {
+            background-color: #007bff;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            padding: 10px 20px;
+            transition: background-color 0.3s ease;
+            font-size: 14px;
+        }
 
-    .btn-back:hover {
-        background-color: #0056b3;
-    }
+        .btn-back:hover {
+            background-color: #0056b3;
+        }
 
-    .card {
-        border-radius: 10px;
-        border: none;
-        box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
-        transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
-    }
+        .table {
+            border-collapse: collapse;
+            width: 100%;
+            margin-bottom: 20px;
+            border-radius: 10px;
+            overflow: hidden;
+            background-color: white;
+        }
 
-    .card:hover {
-        transform: translateY(-5px);
-        box-shadow: 0px 6px 10px rgba(0, 0, 0, 0.15);
-    }
+        .table thead th {
+            background-color: #17a2b8;
+            color: white;
+            text-align: center;
+            padding: 10px;
+        }
 
-    .card-header {
-        background-color: #17a2b8;
-        color: white;
-        text-align: center;
-    }
+        .table tbody td {
+            padding: 12px;
+            text-align: center;
+        }
 
-    h1 {
-        font-size: 1.8rem;
-        font-weight: bold;
-        color: #333;
-        text-align: center;
-        margin-bottom: 20px;
-    }
+        .table tbody tr:nth-child(odd) {
+            background-color: #f9f9f9;
+        }
 
-    .table {
-        width: 100%;
-        border-collapse: collapse;
-        border-radius: 10px;
-        overflow: hidden;
-        background-color: white;
-    }
+        .table tbody tr:hover {
+            background-color: #e8f5ff;
+        }
 
-    .table thead th {
-        background-color: #17a2b8;
-        color: white;
-        padding: 10px;
-        text-align: center;
-    }
+        .badge {
+            font-size: 0.85rem;
+            padding: 5px 10px;
+            border-radius: 12px;
+            color: white;
+        }
 
-    .table tbody td {
-        padding: 12px;
-        text-align: center;
-        border-bottom: 1px solid #ddd;
-    }
+        .badge-soumise {
+            background-color: #007bff;
+        }
 
-    .table tbody tr:nth-child(odd) {
-        background-color: #f9f9f9;
-    }
+        .badge-approuvée {
+            background-color: #28a745;
+        }
 
-    .table tbody tr:hover {
-        background-color: #f1f1f1;
-    }
+        .badge-rejetée {
+            background-color: #dc3545;
+        }
 
-    .badge {
-        font-size: 0.85rem;
-        padding: 5px 10px;
-        border-radius: 12px;
-        color: white;
-    }
+        .btn-primary, .btn-danger {
+            font-size: 0.85rem;
+            padding: 5px 10px;
+            border-radius: 5px;
+        }
 
-    .badge-soumise {
-        background-color: #ffc107;
-    }
+        .btn-primary:hover {
+            background-color: #0056b3;
+        }
 
-    .badge-approuvée {
-        background-color: #28a745;
-    }
-
-    .badge-rejetée {
-        background-color: #dc3545;
-    }
-
-    .btn-primary, .btn-danger {
-        padding: 5px 10px;
-        font-size: 0.85rem;
-        border-radius: 5px;
-    }
-
-    .btn-primary:hover {
-        background-color: #0056b3;
-    }
-
-    .btn-danger:hover {
-        background-color: #c82333;
-    }
-
-    .form-select, .form-control {
-        border-radius: 5px;
-        margin-top: 5px;
-    }
-</style>
-
+        .btn-danger:hover {
+            background-color: #c82333;
+        }
+    </style>
+</head>
+<body>
 <div class="container mt-5">
     <a href="dashboard.php" class="btn-back mb-3"><i class="fas fa-arrow-left"></i> Retour au Tableau de Bord</a>
 
-    <h1>Gestion des Notes de Frais</h1>
+    <h1 class="text-center">Gestion des Notes de Frais</h1>
 
     <!-- Filtres -->
     <form method="GET" class="row mb-4">
@@ -333,7 +303,7 @@ function exportExpensesToExcel($expenses) {
                             <td><?= htmlspecialchars($expense['amount']) ?></td>
                             <td><?= htmlspecialchars($expense['category']) ?></td>
                             <td>
-                                <span class="badge badge-<?= htmlspecialchars($expense['status']) ?>">
+                                <span class="badge badge-<?= strtolower(htmlspecialchars($expense['status'])) ?>">
                                     <?= ucfirst(htmlspecialchars($expense['status'])) ?>
                                 </span>
                             </td>
@@ -367,8 +337,7 @@ function exportExpensesToExcel($expenses) {
         </table>
     </div>
 </div>
-    </div>
-</div>
+
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
