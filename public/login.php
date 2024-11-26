@@ -4,6 +4,12 @@ require '../src/session_manager.php';
 
 $error = '';
 
+// Vérifie si un message d'erreur est défini dans la session (par exemple, en cas de session expirée)
+if (isset($_SESSION['error_message'])) {
+    $error = $_SESSION['error_message'];
+    unset($_SESSION['error_message']); // Supprime le message après affichage
+}
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $login = $_POST['login']; // Peut être un identifiant ou un e-mail
     $password = $_POST['password'];
@@ -18,6 +24,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $_SESSION['user_id'] = $user['id'];
         $_SESSION['name'] = $user['name'];
         $_SESSION['role'] = $user['role'];
+        $_SESSION['last_activity'] = time(); // Initialise l'activité pour la gestion de l'inactivité
 
         // Redirection vers le tableau de bord
         header('Location: dashboard.php');
@@ -66,6 +73,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         .btn-primary {
             width: 100%;
         }
+        .alert {
+            text-align: center;
+            font-size: 14px;
+        }
     </style>
 </head>
 <body>
@@ -76,10 +87,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <!-- Message de Bienvenue -->
     <div class="welcome-message">Bienvenue dans l'Espace Documentaire</div>
 
-    <!-- Formulaire de Connexion -->
+    <!-- Affiche un message d'erreur, si nécessaire -->
     <?php if ($error): ?>
         <div class="alert alert-danger"><?= htmlspecialchars($error) ?></div>
     <?php endif; ?>
+
+    <!-- Formulaire de Connexion -->
     <form method="POST">
         <div class="mb-3">
             <label for="login" class="form-label">E-mail</label>
