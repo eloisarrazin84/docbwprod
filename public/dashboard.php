@@ -212,7 +212,7 @@ if ($profileImage) {
             </div>
         </div>
     <?php endif; ?>
-
+</div>
     <!-- Section Utilisateur (toujours affichée, même pour admin) -->
     <div class="row">
         <div class="col-md-6 col-sm-12">
