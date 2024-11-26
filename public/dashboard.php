@@ -131,30 +131,82 @@ if ($profileImage) {
 </div>
 
 <div class="container mt-5">
+    <h1 class="text-center mb-4"><?= htmlspecialchars($pageTitle) ?></h1>
+
     <?php if ($userRole === 'admin'): ?>
         <!-- Section Administration -->
+        <div class="category-title">Administration</div>
         <div class="row">
-            <div class="col-md-4 col-sm-12">
-                <div class="card text-white bg-primary mb-3 shadow">
+            <div class="col-lg-4 col-md-6 col-sm-12">
+                <div class="card text-white bg-primary mb-4 shadow">
                     <div class="card-header text-center"><i class="fas fa-users"></i> Gestion des Utilisateurs</div>
                     <div class="card-body text-center">
+                        <p class="card-text">Ajouter, modifier et supprimer des utilisateurs.</p>
                         <a href="user_management.php" class="btn btn-light"><i class="fas fa-arrow-right"></i> Gérer</a>
                     </div>
                 </div>
             </div>
-            <div class="col-md-4 col-sm-12">
-                <div class="card text-white bg-success mb-3 shadow">
+            <div class="col-lg-4 col-md-6 col-sm-12">
+                <div class="card text-white bg-success mb-4 shadow">
                     <div class="card-header text-center"><i class="fas fa-folder"></i> Gestion des Dossiers</div>
                     <div class="card-body text-center">
+                        <p class="card-text">Créer, modifier et supprimer des dossiers.</p>
                         <a href="folder_management.php" class="btn btn-light"><i class="fas fa-arrow-right"></i> Gérer</a>
                     </div>
                 </div>
             </div>
-            <div class="col-md-4 col-sm-12">
-                <div class="card text-white bg-warning mb-3 shadow">
+            <div class="col-lg-4 col-md-6 col-sm-12">
+                <div class="card text-white bg-warning mb-4 shadow">
                     <div class="card-header text-center"><i class="fas fa-receipt"></i> Gestion des Notes de Frais</div>
                     <div class="card-body text-center">
+                        <p class="card-text">Consulter et gérer les notes de frais des utilisateurs.</p>
                         <a href="manage_expenses.php" class="btn btn-light"><i class="fas fa-arrow-right"></i> Gérer</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Section Utilisateur -->
+        <div class="category-title">Mes Fonctionnalités</div>
+        <div class="row">
+            <div class="col-lg-6 col-md-6 col-sm-12">
+                <div class="card text-white bg-info mb-4 shadow">
+                    <div class="card-header text-center"><i class="fas fa-folder-open"></i> Mes Documents</div>
+                    <div class="card-body text-center">
+                        <p class="card-text">Accédez aux documents qui vous sont assignés.</p>
+                        <a href="my_documents.php" class="btn btn-light"><i class="fas fa-arrow-right"></i> Accéder</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-6 col-md-6 col-sm-12">
+                <div class="card text-white bg-secondary mb-4 shadow">
+                    <div class="card-header text-center"><i class="fas fa-file-invoice-dollar"></i> Mes Notes de Frais</div>
+                    <div class="card-body text-center">
+                        <p class="card-text">Suivez vos notes de frais.</p>
+                        <a href="user_dashboard_expenses.php" class="btn btn-light"><i class="fas fa-arrow-right"></i> Accéder</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    <?php else: ?>
+        <!-- Section Utilisateur uniquement -->
+        <div class="category-title">Mes Fonctionnalités</div>
+        <div class="row">
+            <div class="col-lg-6 col-md-6 col-sm-12">
+                <div class="card text-white bg-info mb-4 shadow">
+                    <div class="card-header text-center"><i class="fas fa-folder-open"></i> Mes Documents</div>
+                    <div class="card-body text-center">
+                        <p class="card-text">Accédez aux documents qui vous sont assignés.</p>
+                        <a href="my_documents.php" class="btn btn-light"><i class="fas fa-arrow-right"></i> Accéder</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-6 col-md-6 col-sm-12">
+                <div class="card text-white bg-secondary mb-4 shadow">
+                    <div class="card-header text-center"><i class="fas fa-file-invoice-dollar"></i> Mes Notes de Frais</div>
+                    <div class="card-body text-center">
+                        <p class="card-text">Suivez vos notes de frais.</p>
+                        <a href="user_dashboard_expenses.php" class="btn btn-light"><i class="fas fa-arrow-right"></i> Accéder</a>
                     </div>
                 </div>
             </div>
