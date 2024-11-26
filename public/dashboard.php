@@ -34,14 +34,14 @@ if ($profileImage) {
         body {
             background-color: #f8f9fa;
         }
-         h1 {
-        text-align: center;
-        font-size: 2.5rem;
-        font-weight: bold;
-        color: #333;
-        margin-top: 20px;
-        margin-bottom: 40px;
-    }
+        h1 {
+            text-align: center;
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: #333;
+            margin-top: 20px;
+            margin-bottom: 40px;
+        }
         .card {
             transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
         }
@@ -102,14 +102,14 @@ if ($profileImage) {
             height: 100%;
             object-fit: cover;
         }
-        
-    .category-title {
-        text-align: center;
-        font-size: 2rem;
-        font-weight: bold;
-        color: #555;
-        margin-bottom: 30px;
-    }
+        .category-title {
+            text-align: center;
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: #555;
+            margin-top: 40px;
+            margin-bottom: 20px;
+        }
         @media (max-width: 768px) {
             .card {
                 margin-bottom: 20px;
@@ -146,9 +146,8 @@ if ($profileImage) {
 </div>
 
 <div class="container mt-5">
-
+    <!-- Section Administration (si admin) -->
     <?php if ($userRole === 'admin'): ?>
-        <!-- Section Administration -->
         <div class="category-title">Administration</div>
         <div class="row">
             <div class="col-lg-4 col-md-6 col-sm-12">
