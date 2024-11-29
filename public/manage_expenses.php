@@ -229,18 +229,23 @@ function exportExpensesToExcel($expenses) {
                 font-weight: bold;
                 text-transform: capitalize;
             }
-              }
+ }
+        .badge-status {
+            display: inline-block;
+            padding: 0.5rem 1rem;
+            font-size: 0.85rem;
+            font-weight: bold;
+            border-radius: 12px;
+            color: white;
+        }
         .badge-soumise {
             background-color: #007bff;
-            color: white;
         }
         .badge-approuvée {
             background-color: #28a745;
-            color: white;
         }
         .badge-rejetée {
             background-color: #dc3545;
-            color: white;
         }
         }
     </style>
@@ -323,9 +328,17 @@ function exportExpensesToExcel($expenses) {
                                     <td><?= htmlspecialchars($expense['description']) ?></td>
                                     <td><?= htmlspecialchars($expense['amount']) ?></td>
                                     <td><?= htmlspecialchars($expense['category']) ?></td>
-                                    <td><span class="badge badge-<?= strtolower(htmlspecialchars($expense['status'])) ?>">
-                                        <?= ucfirst(htmlspecialchars($expense['status'])) ?>
-                                    </span>
+                                    <td><?php
+                                $statusClass = match (strtolower($expense['status'])) {
+                                    'soumise' => 'badge-soumise',
+                                    'approuvée' => 'badge-approuvée',
+                                    'rejetée' => 'badge-rejetée',
+                                    default => 'badge-secondary',
+                                };
+                                ?>
+                                <span class="badge-status <?= $statusClass ?>">
+                                    <?= ucfirst(htmlspecialchars($expense['status'])) ?>
+                                </span>
     </td>
                                     <td><?= htmlspecialchars($expense['date_submitted']) ?></td>
                                     <td><?= htmlspecialchars($expense['expense_date']) ?></td>
