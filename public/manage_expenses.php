@@ -150,105 +150,151 @@ function exportExpensesToExcel($expenses) {
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
     <style>
-        body {
-            background-color: #f8f9fa;
+    body {
+        background-color: #f8f9fa;
+    }
+
+    /* Bouton retour */
+    .btn-back {
+        background-color: #007bff;
+        color: white;
+        text-decoration: none;
+        border-radius: 5px;
+        padding: 10px 20px;
+        transition: background-color 0.3s ease;
+        font-size: 14px;
+    }
+
+    .btn-back:hover {
+        background-color: #0056b3;
+    }
+
+    /* Carte */
+    .card {
+        border-radius: 10px;
+        border: none;
+        box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+        transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
+    }
+
+    .card-header {
+        background-color: #00bfff; /* Couleur adaptée */
+        color: white;
+        font-size: 1.5rem;
+        text-align: center;
+        padding: 1rem;
+        font-weight: bold;
+    }
+
+    .card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0px 6px 10px rgba(0, 0, 0, 0.15);
+    }
+
+    /* Formulaire de filtres */
+    .form-select,
+    .form-control {
+        border-radius: 5px;
+        margin-top: 5px;
+    }
+
+    /* Boutons */
+    .btn-export {
+        background-color: #ffc107;
+        color: white;
+        border-radius: 5px;
+        transition: background-color 0.3s ease;
+    }
+
+    .btn-export:hover {
+        background-color: #e0a800;
+    }
+
+    .btn-primary {
+        background-color: #007bff;
+        border: none;
+        transition: background-color 0.3s ease;
+    }
+
+    .btn-primary:hover {
+        background-color: #0056b3;
+    }
+
+    .btn-danger {
+        background-color: #dc3545;
+        border: none;
+        transition: background-color 0.3s ease;
+    }
+
+    .btn-danger:hover {
+        background-color: #b52a37;
+    }
+
+    /* Table */
+    .table {
+        margin-top: 20px;
+        text-align: center;
+    }
+
+    .table th,
+    .table td {
+        vertical-align: middle;
+        text-align: center;
+    }
+
+    .table tbody tr:hover {
+        background-color: #f1f1f1;
+    }
+
+    /* Badges de statut */
+    .badge-status {
+        padding: 0.5rem 1rem;
+        font-size: 0.85rem;
+        font-weight: bold;
+        border-radius: 12px;
+        color: white;
+        display: inline-block;
+    }
+
+    .badge-soumise {
+        background-color: #007bff;
+    }
+
+    .badge-approuvée {
+        background-color: #28a745;
+    }
+
+    .badge-rejetée {
+        background-color: #dc3545;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        .table thead {
+            display: none;
         }
-        .btn-back {
-            background-color: #007bff;
-            color: white;
-            text-decoration: none;
-            border-radius: 5px;
-            padding: 10px 20px;
-            transition: background-color 0.3s ease;
-            font-size: 14px;
+
+        .table tbody td {
+            display: block;
+            width: 100%;
+            text-align: right;
+            border-bottom: 1px solid #dee2e6;
         }
-        .btn-back:hover {
-            background-color: #0056b3;
-        }
-        .card {
-            border-radius: 10px;
-            border: none;
-            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
-            transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
-        }
-        .card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0px 6px 10px rgba(0, 0, 0, 0.15);
-        }
-        .card-header {
-            background-color: #17a2b8;
-            color: white;
-        }
-        .btn-create {
-            background-color: #28a745;
-            color: white;
-            text-decoration: none;
-            border-radius: 5px;
-            padding: 10px 20px;
-            transition: background-color 0.3s ease;
-            display: inline-block;
-        }
-        .btn-create:hover {
-            background-color: #218838;
-        }
-        .table-responsive {
-            margin-top: 20px;
-        }
-        h1, h2 {
-            font-size: 1.8rem;
+
+        .table tbody td:before {
+            content: attr(data-label);
+            float: left;
             font-weight: bold;
-            color: #333;
+            text-transform: capitalize;
         }
-        .form-select, .form-control {
-            border-radius: 5px;
+
+        .btn-export,
+        .btn-primary,
+        .btn-danger {
+            font-size: 12px;
         }
-        .btn-export {
-            background-color: #ffc107;
-            color: white;
-            text-decoration: none;
-            padding: 10px 20px;
-            border-radius: 5px;
-            transition: background-color 0.3s ease;
-        }
-        .btn-export:hover {
-            background-color: #e0a800;
-        }
-        @media (max-width: 768px) {
-            .table thead {
-                display: none;
-            }
-            .table tbody td {
-                display: block;
-                width: 100%;
-                text-align: right;
-                border-bottom: 1px solid #dee2e6;
-            }
-            .table tbody td:before {
-                content: attr(data-label);
-                float: left;
-                font-weight: bold;
-                text-transform: capitalize;
-            }
- }
-        .badge-status {
-            display: inline-block;
-            padding: 0.5rem 1rem;
-            font-size: 0.85rem;
-            font-weight: bold;
-            border-radius: 12px;
-            color: white;
-        }
-        .badge-soumise {
-            background-color: #007bff;
-        }
-        .badge-approuvée {
-            background-color: #28a745;
-        }
-        .badge-rejetée {
-            background-color: #dc3545;
-        }
-        }
-    </style>
+    }
+</style>
 </head>
 <body>
 <div class="container mt-5">
