@@ -12,11 +12,14 @@ $pageTitle = "Mes Documents";
 $userId = $_SESSION['user_id'];
 $userRole = getUserRole(); // Récupère le rôle de l'utilisateur connecté
 
+// Récupérer le terme de recherche
+$searchTerm = $_GET['search'] ?? '';
+
 // Récupérer tous les dossiers avec leurs documents pour l'utilisateur connecté
-$folders = getAllFoldersWithDocuments($userId, $userRole);
+$folders = getAllFoldersWithDocuments($userId, $userRole, $searchTerm);
 
 // Fonction pour récupérer les dossiers et leurs documents
-function getAllFoldersWithDocuments($userId, $userRole) {
+function getAllFoldersWithDocuments($userId, $userRole, $searchTerm = '') {
     global $pdo;
     try {
         $query = "
@@ -24,11 +27,23 @@ function getAllFoldersWithDocuments($userId, $userRole) {
             FROM folders f
             LEFT JOIN documents d ON f.id = d.folder_id
             WHERE f.user_id = :userId
-            ORDER BY f.name ASC, d.upload_date DESC
         ";
+
+        // Ajouter le filtre de recherche
+        if (!empty($searchTerm)) {
+            $query .= " AND (f.name LIKE :searchTerm OR d.file_name LIKE :searchTerm)";
+        }
+
+        $query .= " ORDER BY f.name ASC, d.upload_date DESC";
 
         $stmt = $pdo->prepare($query);
         $stmt->bindParam(':userId', $userId, PDO::PARAM_INT);
+
+        if (!empty($searchTerm)) {
+            $searchTerm = '%' . $searchTerm . '%';
+            $stmt->bindParam(':searchTerm', $searchTerm, PDO::PARAM_STR);
+        }
+
         $stmt->execute();
         $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
@@ -158,34 +173,18 @@ function getAllFoldersWithDocuments($userId, $userRole) {
             color: #333;
             margin-bottom: 30px;
         }
-
-        .accordion-header {
-            margin-top: 10px;
-        }
-
-        .accordion-button {
-            background-color: #007bff;
-            color: white;
-            font-size: 14px;
-            border: none;
-            border-radius: 5px;
-            margin-bottom: 10px;
-        }
-
-        .accordion-button:not(.collapsed) {
-            background-color: #0056b3;
-        }
-
-        .accordion-body {
-            background-color: #f8f9fa;
-            border-radius: 5px;
-        }
     </style>
 </head>
 <body>
 <div class="container mt-4">
     <a href="dashboard.php" class="btn-back mb-4"><i class="fas fa-arrow-left"></i> Retour au tableau de bord</a>
     <h1 class="mb-4">Mes Documents</h1>
+
+    <!-- Barre de recherche -->
+    <form method="GET" class="mb-4 d-flex">
+        <input type="text" name="search" class="form-control" placeholder="Rechercher un document ou un dossier..." value="<?= htmlspecialchars($searchTerm) ?>">
+        <button type="submit" class="btn btn-primary ms-2"><i class="fas fa-search"></i> Rechercher</button>
+    </form>
 
     <div class="row g-3">
         <?php foreach ($folders as $folderId => $folder): ?>
@@ -206,7 +205,10 @@ function getAllFoldersWithDocuments($userId, $userRole) {
                     <?php if (!empty($folder['documents'])): ?>
                         <?php foreach ($folder['documents'] as $document): ?>
                             <div class="document-item">
-                                <span><i class="fas fa-file-alt text-muted"></i> <?= htmlspecialchars($document['name']) ?></span>
+                                <span>
+                                    <i class="fas fa-file-alt text-muted"></i> <?= htmlspecialchars($document['name']) ?>
+                                    <small class="text-muted">(Ajouté le : <?= htmlspecialchars(date('d/m/Y', strtotime($document['upload_date']))) ?>)</small>
+                                </span>
                                 <a href="/uploads/<?= htmlspecialchars($document['name']) ?>" class="btn btn-success btn-sm" download>
                                     <i class="fas fa-download"></i> Télécharger
                                 </a>
