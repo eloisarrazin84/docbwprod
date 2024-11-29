@@ -1,75 +1,25 @@
 <?php
 require '../src/session_manager.php';
 require '../src/db_connect.php';
-require '../src/document_manager.php';
-require '../src/folder_manager.php';
 
 requireLogin(); // Vérifie si l'utilisateur est connecté
 
-$pageTitle = "Mes Documents";
-
-// Récupérer l'utilisateur connecté
+// Récupérer l'ID et le rôle de l'utilisateur
 $userId = $_SESSION['user_id'];
-$userRole = getUserRole(); // Récupère le rôle de l'utilisateur connecté
+$userRole = getUserRole(); // admin ou user
 
-// Récupérer le terme de recherche
-$searchTerm = $_GET['search'] ?? '';
+// Définir le titre de la page
+$pageTitle = "Tableau de Bord";
 
-// Récupérer tous les dossiers avec leurs documents pour l'utilisateur connecté
-$folders = getAllFoldersWithDocuments($userId, $userRole, $searchTerm);
+// Récupération de l'image de profil ou icône par défaut
+$stmt = $pdo->prepare("SELECT profile_image FROM users WHERE id = ?");
+$stmt->execute([$userId]);
+$profileImage = $stmt->fetchColumn();
 
-// Fonction pour récupérer les dossiers et leurs documents
-function getAllFoldersWithDocuments($userId, $userRole, $searchTerm = '') {
-    global $pdo;
-    try {
-        $query = "
-            SELECT f.id AS folder_id, f.name AS folder_name, d.id AS document_id, d.file_name, d.upload_date 
-            FROM folders f
-            LEFT JOIN documents d ON f.id = d.folder_id
-            WHERE f.user_id = :userId
-        ";
-
-        // Ajouter le filtre de recherche
-        if (!empty($searchTerm)) {
-            $query .= " AND (f.name LIKE :searchTerm OR d.file_name LIKE :searchTerm)";
-        }
-
-        $query .= " ORDER BY f.name ASC, d.upload_date DESC";
-
-        $stmt = $pdo->prepare($query);
-        $stmt->bindParam(':userId', $userId, PDO::PARAM_INT);
-
-        if (!empty($searchTerm)) {
-            $searchTerm = '%' . $searchTerm . '%';
-            $stmt->bindParam(':searchTerm', $searchTerm, PDO::PARAM_STR);
-        }
-
-        $stmt->execute();
-        $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
-        // Organiser les documents par dossiers
-        $folders = [];
-        foreach ($results as $row) {
-            $folderId = $row['folder_id'];
-            if (!isset($folders[$folderId])) {
-                $folders[$folderId] = [
-                    'name' => $row['folder_name'],
-                    'documents' => []
-                ];
-            }
-            if (!empty($row['document_id'])) {
-                $folders[$folderId]['documents'][] = [
-                    'id' => $row['document_id'],
-                    'name' => $row['file_name'],
-                    'upload_date' => $row['upload_date']
-                ];
-            }
-        }
-        return $folders;
-    } catch (PDOException $e) {
-        error_log("Erreur PDO : " . $e->getMessage());
-        return [];
-    }
+if ($profileImage) {
+    $profileImageUrl = '/uploads/profiles/' . htmlspecialchars($profileImage);
+} else {
+    $profileImageUrl = 'https://cdn-icons-png.flaticon.com/512/149/149071.png'; // Icône utilisateur par défaut
 }
 ?>
 <!DOCTYPE html>
@@ -77,174 +27,171 @@ function getAllFoldersWithDocuments($userId, $userRole, $searchTerm = '') {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mes Documents</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <title>Tableau de Bord</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
         body {
-            background-color: #f5f7fa;
+            background-color: #f8f9fa;
         }
-
-        .btn-back {
-            background-color: #007bff;
-            color: white;
-            text-decoration: none;
-            border-radius: 5px;
-            padding: 10px 20px;
-            transition: background-color 0.3s ease;
-            font-size: 14px;
-        }
-
-        .btn-back:hover {
-            background-color: #0056b3;
-        }
-
-        .folder-card {
-            border: none;
-            border-radius: 10px;
-            background: linear-gradient(135deg, #007bff, #0056b3);
-            color: white;
-            padding: 15px;
-            text-align: center;
-            height: 120px;
+        .dashboard-header {
             display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-        }
-
-        .folder-card:hover {
-            transform: scale(1.03);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-        }
-
-        .folder-card i {
-            font-size: 1.8rem;
-        }
-
-        .folder-card h5 {
-            font-size: 1rem;
-            font-weight: bold;
-            margin: 0;
-        }
-
-        .card-actions a {
-            font-size: 12px;
-            padding: 5px 10px;
-            color: #fff;
-            background-color: #003d66;
-            border-radius: 5px;
-            text-decoration: none;
-            transition: background-color 0.3s ease;
-        }
-
-        .card-actions a:hover {
-            background-color: #002846;
-        }
-
-        .document-list {
-            background-color: #fff;
-            border-radius: 10px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-            padding: 15px;
-            margin: 15px 0;
-        }
-
-        .document-item {
-            display: flex;
-            justify-content: space-between;
+            justify-content: center;
             align-items: center;
-            padding: 10px 0;
-            border-bottom: 1px solid #e9ecef;
+            padding: 20px;
+            background-color: #fff;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            flex-wrap: wrap;
         }
-
-        .document-item:last-child {
-            border-bottom: none;
+        .dashboard-header img {
+            max-height: 70px;
         }
-
-        .document-item i {
-            margin-right: 10px;
+        .logout-btn {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background-color: #dc3545;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
         }
-
-        h1 {
-            font-size: 1.8rem;
-            font-weight: bold;
+        .logout-btn:hover {
+            background-color: #c82333;
+        }
+        .user-profile {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .profile-link {
+            display: inline-block;
+            border-radius: 50%;
+            overflow: hidden;
+            width: 40px;
+            height: 40px;
+            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease;
+        }
+        .profile-link:hover {
+            transform: scale(1.1);
+        }
+        .profile-image {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .category-title {
             text-align: center;
-            color: #333;
+            font-size: 2rem;
+            font-weight: bold;
+            color: #555;
+            margin-top: 20px;
             margin-bottom: 30px;
         }
-
-        .accordion-header {
-            margin-top: 10px;
+        .card {
+            transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
         }
-
-        .accordion-button {
-            background-color: #007bff;
-            color: white;
-            font-size: 14px;
-            border: none;
-            border-radius: 5px;
-            margin-bottom: 10px;
+        .card:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
         }
-
-        .accordion-button:not(.collapsed) {
-            background-color: #0056b3;
-        }
-
-        .accordion-body {
-            background-color: #f8f9fa;
-            border-radius: 5px;
+        @media (max-width: 768px) {
+            .card {
+                margin-bottom: 20px;
+            }
+            .logout-btn {
+                top: auto;
+                bottom: 20px;
+                right: 20px;
+            }
+            .user-profile {
+                top: auto;
+                bottom: 20px;
+                left: 20px;
+            }
         }
     </style>
 </head>
 <body>
-<div class="container mt-4">
-    <a href="/dashboard.php" class="btn-back mb-4"><i class="fas fa-arrow-left"></i> Retour au tableau de bord</a>
-    <h1 class="mb-4">Mes Documents</h1>
-
-    <!-- Formulaire de recherche -->
-    <form method="GET" class="mb-4 d-flex">
-        <input type="text" name="search" class="form-control" placeholder="Rechercher un document ou un dossier..." value="<?= htmlspecialchars($searchTerm) ?>">
-        <button type="submit" class="btn btn-primary ms-2"><i class="fas fa-search"></i> Rechercher</button>
+<div class="dashboard-header">
+    <!-- Logo centré -->
+    <img src="https://images.squarespace-cdn.com/content/v1/56893684d8af102bf3e403f1/1571317878518-X3DEUWJNOFZKBZ4LKQ54/Logo_BeWitness_Full.png?format=1500w" alt="Logo Be Witness">
+    <!-- Déconnexion -->
+    <form action="logout.php" method="post">
+        <button type="submit" class="logout-btn">Se déconnecter</button>
     </form>
+    <!-- Badge utilisateur -->
+    <div class="user-profile">
+        <a href="profile.php" class="profile-link">
+            <img src="<?= htmlspecialchars($profileImageUrl) ?>" 
+                 alt="Photo de profil" class="profile-image">
+        </a>
+    </div>
+</div>
 
-    <!-- Dossiers et documents -->
-    <div class="row g-3">
-        <?php foreach ($folders as $folderId => $folder): ?>
-            <div class="col-md-4 col-sm-6">
-                <div class="card folder-card">
-                    <i class="fas fa-folder"></i>
-                    <h5><?= htmlspecialchars($folder['name']) ?></h5>
-                    <div class="card-actions">
-                        <a href="#collapse<?= $folderId ?>" data-bs-toggle="collapse" aria-expanded="false">
-                            Voir les documents
-                        </a>
+<div class="container mt-5">
+    <?php if ($userRole === 'admin'): ?>
+        <!-- Section Administration -->
+        <div class="category-title">Administration</div>
+        <div class="row">
+            <div class="col-lg-4 col-md-6 col-sm-12">
+                <div class="card text-white bg-primary mb-4 shadow">
+                    <div class="card-header text-center"><i class="fas fa-users"></i> Gestion des Utilisateurs</div>
+                    <div class="card-body text-center">
+                        <p class="card-text">Ajouter, modifier et supprimer des utilisateurs.</p>
+                        <a href="user_management.php" class="btn btn-light"><i class="fas fa-arrow-right"></i> Gérer</a>
                     </div>
                 </div>
             </div>
-            <div class="col-12 collapse" id="collapse<?= $folderId ?>">
-                <div class="document-list">
-                    <h6 class="text-primary mb-3">Documents dans le dossier "<?= htmlspecialchars($folder['name']) ?>"</h6>
-                    <?php if (!empty($folder['documents'])): ?>
-                        <?php foreach ($folder['documents'] as $document): ?>
-                            <div class="document-item">
-                                <span>
-                                    <i class="fas fa-file-alt text-muted"></i> <?= htmlspecialchars($document['name']) ?>
-                                    <small class="text-muted">(Ajouté le : <?= htmlspecialchars(date('d/m/Y', strtotime($document['upload_date']))) ?>)</small>
-                                </span>
-                                <a href="/uploads/<?= htmlspecialchars($document['name']) ?>" class="btn btn-success btn-sm" download>
-                                    <i class="fas fa-download"></i> Télécharger
-                                </a>
-                            </div>
-                        <?php endforeach; ?>
-                    <?php else: ?>
-                        <p class="text-muted">Aucun document disponible.</p>
-                    <?php endif; ?>
+            <div class="col-lg-4 col-md-6 col-sm-12">
+                <div class="card text-white bg-success mb-4 shadow">
+                    <div class="card-header text-center"><i class="fas fa-folder"></i> Gestion des Dossiers</div>
+                    <div class="card-body text-center">
+                        <p class="card-text">Créer, modifier et supprimer des dossiers.</p>
+                        <a href="folder_management.php" class="btn btn-light"><i class="fas fa-arrow-right"></i> Gérer</a>
+                    </div>
                 </div>
             </div>
-        <?php endforeach; ?>
+            <div class="col-lg-4 col-md-6 col-sm-12">
+                <div class="card text-white bg-warning mb-4 shadow">
+                    <div class="card-header text-center"><i class="fas fa-receipt"></i> Gestion des Notes de Frais</div>
+                    <div class="card-body text-center">
+                        <p class="card-text">Consulter et gérer les notes de frais des utilisateurs.</p>
+                        <a href="manage_expenses.php" class="btn btn-light"><i class="fas fa-arrow-right"></i> Gérer</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    <?php endif; ?>
+
+    <!-- Section Fonctionnalités Utilisateur -->
+    <div class="category-title">Mes Fonctionnalités</div>
+    <div class="row">
+        <div class="col-lg-6 col-md-6 col-sm-12">
+            <div class="card text-white bg-info mb-4 shadow">
+                <div class="card-header text-center"><i class="fas fa-folder-open"></i> Mes Documents</div>
+                <div class="card-body text-center">
+                    <p class="card-text">Accédez aux documents qui vous sont assignés.</p>
+                    <a href="my_documents.php" class="btn btn-light"><i class="fas fa-arrow-right"></i> Accéder</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-6 col-md-6 col-sm-12">
+            <div class="card text-white bg-secondary mb-4 shadow">
+                <div class="card-header text-center"><i class="fas fa-file-invoice-dollar"></i> Mes Notes de Frais</div>
+                <div class="card-body text-center">
+                    <p class="card-text">Suivez vos notes de frais.</p>
+                    <a href="user_dashboard_expenses.php" class="btn btn-light"><i class="fas fa-arrow-right"></i> Accéder</a>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
