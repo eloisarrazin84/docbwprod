@@ -12,14 +12,14 @@ $pageTitle = "Mes Documents";
 $userId = $_SESSION['user_id'];
 $userRole = getUserRole(); // Récupère le rôle de l'utilisateur connecté
 
-// Récupérer tous les dossiers avec leurs documents pour l'utilisateur connecté
-$folders = getAllFoldersWithDocuments($userId, $userRole);
+// Récupérer le terme de recherche
+$searchTerm = $_GET['search'] ?? '';
 
-// Récupérer les recherches (si existantes)
-$searchQuery = $_GET['search'] ?? '';
+// Récupérer tous les dossiers avec leurs documents pour l'utilisateur connecté
+$folders = getAllFoldersWithDocuments($userId, $userRole, $searchTerm);
 
 // Fonction pour récupérer les dossiers et leurs documents
-function getAllFoldersWithDocuments($userId, $userRole, $searchQuery = '') {
+function getAllFoldersWithDocuments($userId, $userRole, $searchTerm = '') {
     global $pdo;
     try {
         $query = "
@@ -28,20 +28,22 @@ function getAllFoldersWithDocuments($userId, $userRole, $searchQuery = '') {
             LEFT JOIN documents d ON f.id = d.folder_id
             WHERE f.user_id = :userId
         ";
-        
-        // Ajout du filtre de recherche
-        if (!empty($searchQuery)) {
-            $query .= " AND (d.file_name LIKE :search OR f.name LIKE :search)";
+
+        // Ajouter le filtre de recherche
+        if (!empty($searchTerm)) {
+            $query .= " AND (f.name LIKE :searchTerm OR d.file_name LIKE :searchTerm)";
         }
-        
+
         $query .= " ORDER BY f.name ASC, d.upload_date DESC";
 
         $stmt = $pdo->prepare($query);
         $stmt->bindParam(':userId', $userId, PDO::PARAM_INT);
-        if (!empty($searchQuery)) {
-            $searchTerm = '%' . $searchQuery . '%';
-            $stmt->bindParam(':search', $searchTerm, PDO::PARAM_STR);
+
+        if (!empty($searchTerm)) {
+            $searchTerm = '%' . $searchTerm . '%';
+            $stmt->bindParam(':searchTerm', $searchTerm, PDO::PARAM_STR);
         }
+
         $stmt->execute();
         $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
@@ -75,7 +77,7 @@ function getAllFoldersWithDocuments($userId, $userRole, $searchQuery = '') {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?= htmlspecialchars($pageTitle) ?></title>
+    <title>Mes Documents</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
     <style>
@@ -124,6 +126,20 @@ function getAllFoldersWithDocuments($userId, $userRole, $searchQuery = '') {
             font-size: 1rem;
             font-weight: bold;
             margin: 0;
+        }
+
+        .card-actions a {
+            font-size: 12px;
+            padding: 5px 10px;
+            color: #fff;
+            background-color: #003d66;
+            border-radius: 5px;
+            text-decoration: none;
+            transition: background-color 0.3s ease;
+        }
+
+        .card-actions a:hover {
+            background-color: #002846;
         }
 
         .document-list {
@@ -179,62 +195,48 @@ function getAllFoldersWithDocuments($userId, $userRole, $searchQuery = '') {
             background-color: #f8f9fa;
             border-radius: 5px;
         }
-
-        .search-bar {
-            margin-bottom: 20px;
-        }
     </style>
 </head>
 <body>
 <div class="container mt-4">
-    <a href="dashboard.php" class="btn-back mb-4"><i class="fas fa-arrow-left"></i> Retour au tableau de bord</a>
-    <h1 class="mb-4"><?= htmlspecialchars($pageTitle) ?></h1>
+    <a href="/dashboard.php" class="btn-back mb-4"><i class="fas fa-arrow-left"></i> Retour au tableau de bord</a>
+    <h1 class="mb-4">Mes Documents</h1>
 
-    <!-- Barre de recherche -->
-    <form method="GET" class="search-bar">
-        <div class="input-group">
-            <input type="text" name="search" class="form-control" placeholder="Rechercher un document ou un dossier..." value="<?= htmlspecialchars($searchQuery) ?>">
-            <button class="btn btn-primary" type="submit"><i class="fas fa-search"></i> Rechercher</button>
-        </div>
+    <!-- Formulaire de recherche -->
+    <form method="GET" class="mb-4 d-flex">
+        <input type="text" name="search" class="form-control" placeholder="Rechercher un document ou un dossier..." value="<?= htmlspecialchars($searchTerm) ?>">
+        <button type="submit" class="btn btn-primary ms-2"><i class="fas fa-search"></i> Rechercher</button>
     </form>
 
+    <!-- Dossiers et documents -->
     <div class="row g-3">
         <?php foreach ($folders as $folderId => $folder): ?>
             <div class="col-md-4 col-sm-6">
                 <div class="card folder-card">
                     <i class="fas fa-folder"></i>
                     <h5><?= htmlspecialchars($folder['name']) ?></h5>
-                    <a href="#collapse<?= $folderId ?>" data-bs-toggle="collapse" class="btn btn-sm btn-light" aria-expanded="false">
-                        Voir les documents
-                    </a>
+                    <div class="card-actions">
+                        <a href="#collapse<?= $folderId ?>" data-bs-toggle="collapse" aria-expanded="false">
+                            Voir les documents
+                        </a>
+                    </div>
                 </div>
             </div>
             <div class="col-12 collapse" id="collapse<?= $folderId ?>">
                 <div class="document-list">
                     <h6 class="text-primary mb-3">Documents dans le dossier "<?= htmlspecialchars($folder['name']) ?>"</h6>
                     <?php if (!empty($folder['documents'])): ?>
-                        <table class="table table-striped">
-                            <thead>
-                                <tr>
-                                    <th>Nom</th>
-                                    <th>Date d'ajout</th>
-                                    <th>Action</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <?php foreach ($folder['documents'] as $document): ?>
-                                    <tr>
-                                        <td><?= htmlspecialchars($document['name']) ?></td>
-                                        <td><?= htmlspecialchars($document['upload_date']) ?></td>
-                                        <td>
-                                            <a href="/uploads/<?= htmlspecialchars($document['name']) ?>" class="btn btn-success btn-sm" download>
-                                                <i class="fas fa-download"></i> Télécharger
-                                            </a>
-                                        </td>
-                                    </tr>
-                                <?php endforeach; ?>
-                            </tbody>
-                        </table>
+                        <?php foreach ($folder['documents'] as $document): ?>
+                            <div class="document-item">
+                                <span>
+                                    <i class="fas fa-file-alt text-muted"></i> <?= htmlspecialchars($document['name']) ?>
+                                    <small class="text-muted">(Ajouté le : <?= htmlspecialchars(date('d/m/Y', strtotime($document['upload_date']))) ?>)</small>
+                                </span>
+                                <a href="/uploads/<?= htmlspecialchars($document['name']) ?>" class="btn btn-success btn-sm" download>
+                                    <i class="fas fa-download"></i> Télécharger
+                                </a>
+                            </div>
+                        <?php endforeach; ?>
                     <?php else: ?>
                         <p class="text-muted">Aucun document disponible.</p>
                     <?php endif; ?>
