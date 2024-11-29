@@ -1,6 +1,6 @@
 <?php
 require '../src/db_connect.php';
-require '../src/expense_manager.php';
+require_once '../src/expense_manager.php'; // Utilisation de require_once pour éviter des inclusions multiples
 require '../src/session_manager.php';
 
 requireAdmin(); // Vérifie si l'utilisateur est administrateur
@@ -36,18 +36,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (isset($_POST['update_status'], $_POST['expense_id'], $_POST['status'])) {
         $expenseId = intval($_POST['expense_id']);
         $status = $_POST['status'];
-
-        // Validation des statuts autorisés
-        $validStatuses = ['soumise', 'approuvée', 'rejetée'];
-        if (in_array($status, $validStatuses, true)) {
-            if (updateExpenseStatus($expenseId, $status)) {
-                $success = "Le statut de la note de frais #{$expenseId} a été mis à jour.";
-                $expenses = listSubmittedExpenses($categoryFilter, $statusFilter, $dateFilter, $userFilter);
-            } else {
-                $error = "Erreur lors de la mise à jour du statut.";
-            }
+        if (updateExpenseStatus($expenseId, $status)) {
+            $success = "Le statut de la note de frais #{$expenseId} a été mis à jour.";
+            $expenses = listSubmittedExpenses($categoryFilter, $statusFilter, $dateFilter, $userFilter);
         } else {
-            $error = "Statut non valide.";
+            $error = "Erreur lors de la mise à jour du statut.";
         }
     }
 
@@ -66,94 +59,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-// Fonction pour récupérer les notes de frais filtrées
-function listSubmittedExpenses($category = '', $status = '', $date = '', $user = '') {
-    global $pdo;
-    try {
-        $query = "
-            SELECT e.*, u.name AS user_name, u.email AS user_email 
-            FROM expense_notes e 
-            JOIN users u ON e.user_id = u.id 
-            WHERE e.status != 'brouillon'
-        ";
-        $params = [];
-
-        if (!empty($category)) {
-            $query .= " AND e.category = ?";
-            $params[] = $category;
-        }
-
-        if (!empty($status)) {
-            $query .= " AND e.status = ?";
-            $params[] = $status;
-        }
-
-        if (!empty($date)) {
-            $query .= " AND e.expense_date = ?";
-            $params[] = $date;
-        }
-
-        if (!empty($user)) {
-            $query .= " AND e.user_id = ?";
-            $params[] = $user;
-        }
-
-        $query .= " ORDER BY e.date_submitted DESC";
-        $stmt = $pdo->prepare($query);
-        $stmt->execute($params);
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
-    } catch (PDOException $e) {
-        error_log("Erreur PDO : " . $e->getMessage());
-        return [];
-    }
-}
-
-function updateExpenseStatus($expenseId, $status) {
-    global $pdo;
-    try {
-        $stmt = $pdo->prepare("UPDATE expense_notes SET status = ? WHERE id = ?");
-        return $stmt->execute([$status, $expenseId]);
-    } catch (PDOException $e) {
-        error_log("Erreur PDO : " . $e->getMessage());
-        return false;
-    }
-}
-
-function exportExpensesToExcel($expenses) {
-    header('Content-Type: application/vnd.ms-excel');
-    header('Content-Disposition: attachment;filename="expenses_export_' . date('Y-m-d') . '.xls"');
-    header('Cache-Control: max-age=0');
-
-    echo "<table border='1'>";
-    echo "<tr>
-        <th>ID</th>
-        <th>Description</th>
-        <th>Montant (€)</th>
-        <th>Catégorie</th>
-        <th>Statut</th>
-        <th>Date de Soumission</th>
-        <th>Date de Dépense</th>
-        <th>Utilisateur</th>
-        <th>Commentaire</th>
-    </tr>";
-
-    foreach ($expenses as $expense) {
-        echo "<tr>
-            <td>{$expense['id']}</td>
-            <td>{$expense['description']}</td>
-            <td>{$expense['amount']}</td>
-            <td>{$expense['category']}</td>
-            <td>{$expense['status']}</td>
-            <td>{$expense['date_submitted']}</td>
-            <td>{$expense['expense_date']}</td>
-            <td>{$expense['user_name']} ({$expense['user_email']})</td>
-            <td>{$expense['comment']}</td>
-        </tr>";
-    }
-
-    echo "</table>";
-    exit();
-}
 ?>
 <!DOCTYPE html>
 <html lang="fr">
@@ -174,6 +79,7 @@ function exportExpensesToExcel($expenses) {
             text-decoration: none;
             border-radius: 5px;
             padding: 10px 20px;
+            transition: background-color 0.3s ease;
             font-size: 14px;
         }
 
@@ -181,32 +87,20 @@ function exportExpensesToExcel($expenses) {
             background-color: #0056b3;
         }
 
-        .badge-soumise {
-            background-color: #007bff;
-            color: white;
-        }
-
-        .badge-approuvée {
-            background-color: #28a745;
-            color: white;
-        }
-
-        .badge-rejetée {
-            background-color: #dc3545;
-            color: white;
-        }
-
         .table {
             border-collapse: collapse;
             width: 100%;
+            margin-bottom: 20px;
+            border-radius: 10px;
+            overflow: hidden;
             background-color: white;
         }
 
         .table thead th {
             background-color: #17a2b8;
             color: white;
-            padding: 10px;
             text-align: center;
+            padding: 10px;
         }
 
         .table tbody td {
@@ -221,15 +115,47 @@ function exportExpensesToExcel($expenses) {
         .table tbody tr:hover {
             background-color: #e8f5ff;
         }
+
+        .badge {
+            font-size: 0.85rem;
+            padding: 5px 10px;
+            border-radius: 12px;
+            color: white;
+        }
+
+        .badge-soumise {
+            background-color: #007bff;
+        }
+
+        .badge-approuvée {
+            background-color: #28a745;
+        }
+
+        .badge-rejetée {
+            background-color: #dc3545;
+        }
+
+        .btn-primary, .btn-danger {
+            font-size: 0.85rem;
+            padding: 5px 10px;
+            border-radius: 5px;
+        }
+
+        .btn-primary:hover {
+            background-color: #0056b3;
+        }
+
+        .btn-danger:hover {
+            background-color: #c82333;
+        }
     </style>
 </head>
 <body>
 <div class="container mt-5">
     <a href="dashboard.php" class="btn-back mb-3"><i class="fas fa-arrow-left"></i> Retour au Tableau de Bord</a>
 
-    <h1 class="text-center mb-4">Gestion des Notes de Frais</h1>
+    <h1 class="text-center">Gestion des Notes de Frais</h1>
 
-    <!-- Messages de succès/erreur -->
     <?php if ($success): ?>
         <div class="alert alert-success"><?= htmlspecialchars($success) ?></div>
     <?php endif; ?>
@@ -288,33 +214,51 @@ function exportExpensesToExcel($expenses) {
                     <th>Catégorie</th>
                     <th>Statut</th>
                     <th>Date de Soumission</th>
+                    <th>Date de Dépense</th>
                     <th>Utilisateur</th>
+                    <th>Commentaire</th>
                     <th>Actions</th>
                 </tr>
             </thead>
             <tbody>
-                <?php foreach ($expenses as $expense): ?>
+                <?php if (!empty($expenses)): ?>
+                    <?php foreach ($expenses as $expense): ?>
+                        <tr>
+                            <td><?= htmlspecialchars($expense['id']) ?></td>
+                            <td><?= htmlspecialchars($expense['description']) ?></td>
+                            <td><?= htmlspecialchars($expense['amount']) ?></td>
+                            <td><?= htmlspecialchars($expense['category']) ?></td>
+                            <td>
+                                <span class="badge badge-<?= strtolower(htmlspecialchars($expense['status'])) ?>">
+                                    <?= ucfirst(htmlspecialchars($expense['status'])) ?>
+                                </span>
+                            </td>
+                            <td><?= htmlspecialchars($expense['date_submitted']) ?></td>
+                            <td><?= htmlspecialchars($expense['expense_date']) ?></td>
+                            <td><?= htmlspecialchars($expense['user_name'] . ' (' . $expense['user_email'] . ')') ?></td>
+                            <td><?= htmlspecialchars($expense['comment']) ?></td>
+                            <td>
+                                <form method="POST" style="display: inline;">
+                                    <input type="hidden" name="expense_id" value="<?= htmlspecialchars($expense['id']) ?>">
+                                    <select name="status" class="form-select form-select-sm">
+                                        <option value="soumise" <?= $expense['status'] === 'soumise' ? 'selected' : '' ?>>Soumise</option>
+                                        <option value="approuvée" <?= $expense['status'] === 'approuvée' ? 'selected' : '' ?>>Approuvée</option>
+                                        <option value="rejetée" <?= $expense['status'] === 'rejetée' ? 'selected' : '' ?>>Rejetée</option>
+                                    </select>
+                                    <button type="submit" name="update_status" class="btn btn-primary btn-sm mt-2">Mettre à jour</button>
+                                </form>
+                                <form method="POST" style="display: inline;">
+                                    <input type="hidden" name="expense_id" value="<?= htmlspecialchars($expense['id']) ?>">
+                                    <button type="submit" name="delete_expense" class="btn btn-danger btn-sm mt-2">Supprimer</button>
+                                </form>
+                            </td>
+                        </tr>
+                    <?php endforeach; ?>
+                <?php else: ?>
                     <tr>
-                        <td><?= htmlspecialchars($expense['id']) ?></td>
-                        <td><?= htmlspecialchars($expense['description']) ?></td>
-                        <td><?= htmlspecialchars($expense['amount']) ?></td>
-                        <td><?= htmlspecialchars($expense['category']) ?></td>
-                        <td><span class="badge badge-<?= htmlspecialchars($expense['status']) ?>"><?= ucfirst(htmlspecialchars($expense['status'])) ?></span></td>
-                        <td><?= htmlspecialchars($expense['date_submitted']) ?></td>
-                        <td><?= htmlspecialchars($expense['user_name']) ?></td>
-                        <td>
-                            <form method="POST" style="display: inline;">
-                                <input type="hidden" name="expense_id" value="<?= htmlspecialchars($expense['id']) ?>">
-                                <select name="status" class="form-select form-select-sm">
-                                    <option value="soumise" <?= $expense['status'] === 'soumise' ? 'selected' : '' ?>>Soumise</option>
-                                    <option value="approuvée" <?= $expense['status'] === 'approuvée' ? 'selected' : '' ?>>Approuvée</option>
-                                    <option value="rejetée" <?= $expense['status'] === 'rejetée' ? 'selected' : '' ?>>Rejetée</option>
-                                </select>
-                                <button type="submit" name="update_status" class="btn btn-primary btn-sm mt-1">Mettre à jour</button>
-                            </form>
-                        </td>
+                        <td colspan="10" class="text-center">Aucune note de frais trouvée.</td>
                     </tr>
-                <?php endforeach; ?>
+                <?php endif; ?>
             </tbody>
         </table>
     </div>
