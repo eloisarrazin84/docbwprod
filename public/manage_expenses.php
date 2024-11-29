@@ -229,6 +229,19 @@ function exportExpensesToExcel($expenses) {
                 font-weight: bold;
                 text-transform: capitalize;
             }
+              }
+        .badge-soumise {
+            background-color: #007bff;
+            color: white;
+        }
+        .badge-approuvée {
+            background-color: #28a745;
+            color: white;
+        }
+        .badge-rejetée {
+            background-color: #dc3545;
+            color: white;
+        }
         }
     </style>
 </head>
@@ -310,7 +323,10 @@ function exportExpensesToExcel($expenses) {
                                     <td><?= htmlspecialchars($expense['description']) ?></td>
                                     <td><?= htmlspecialchars($expense['amount']) ?></td>
                                     <td><?= htmlspecialchars($expense['category']) ?></td>
-                                    <td><?= htmlspecialchars($expense['status']) ?></td>
+                                    <td><span class="badge badge-<?= strtolower(htmlspecialchars($expense['status'])) ?>">
+                                        <?= ucfirst(htmlspecialchars($expense['status'])) ?>
+                                    </span>
+    </td>
                                     <td><?= htmlspecialchars($expense['date_submitted']) ?></td>
                                     <td><?= htmlspecialchars($expense['expense_date']) ?></td>
                                     <td><?= htmlspecialchars($expense['user_name'] . ' (' . $expense['user_email'] . ')') ?></td>
