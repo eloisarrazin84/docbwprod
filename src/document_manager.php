@@ -39,30 +39,46 @@ function uploadDocument($folderId, $file) {
     }
 
     // Enregistrer dans la base de données
-    try {
-        $stmt = $pdo->prepare("INSERT INTO documents (folder_id, user_id, file_name, file_path) VALUES (?, ?, ?, ?)");
-        $stmt->execute([$folderId, $userId, $file['name'], $fileName]);
+try {
+    // Enregistrer le document dans la base
+    $stmt = $pdo->prepare("INSERT INTO documents (folder_id, user_id, file_name, file_path) VALUES (?, ?, ?, ?)");
+    $stmt->execute([$folderId, $userId, $file['name'], $fileName]);
 
-        // Notifier l'utilisateur
-        $stmt = $pdo->prepare("SELECT email FROM users WHERE id = ?");
-        $stmt->execute([$userId]);
-        $user = $stmt->fetch(PDO::FETCH_ASSOC);
+    // Récupérer l'e-mail de l'utilisateur propriétaire du dossier
+    $stmt = $pdo->prepare("
+        SELECT u.email 
+        FROM users u 
+        JOIN folders f ON f.user_id = u.id 
+        WHERE f.id = ?
+    ");
+    $stmt->execute([$folderId]);
+    $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
-        if ($user && $user['email']) {
-            $emailTemplatePath = '/var/www/src/mail/templates/document_notification.html';
-            if (file_exists($emailTemplatePath)) {
-                $emailContent = str_replace(
-                    ['{{document_name}}'],
-                    [$file['name']],
-                    file_get_contents($emailTemplatePath)
-                );
-                sendEmailNotification($user['email'], "Nouveau document disponible", $emailContent);
-            }
+    if ($user && $user['email']) {
+        // Charger le modèle d'email HTML
+        $emailTemplatePath = '/var/www/src/mail/templates/document_notification.html';
+        if (file_exists($emailTemplatePath)) {
+            $emailTemplate = file_get_contents($emailTemplatePath);
+        } else {
+            error_log("Erreur : Le fichier de modèle d'email $emailTemplatePath est introuvable.");
+            return ['success' => false, 'message' => 'Erreur : Notification email impossible.'];
         }
-    } catch (PDOException $e) {
-        error_log("Erreur PDO : " . $e->getMessage());
-        return ['success' => false, 'message' => 'Erreur : Enregistrement en base échoué.'];
+
+        // Remplacer les placeholders par les valeurs dynamiques
+        $emailContent = str_replace(
+            ['{{document_name}}', '{{logo_url}}'],
+            [$file['name'], 'https://images.squarespace-cdn.com/content/v1/56893684d8af102bf3e403f1/1571317878518-X3DEUWJNOFZKBZ4LKQ54/Logo_BeWitness_Full.png?format=1500w'],
+            $emailTemplate
+        );
+
+        // Envoyer l'e-mail de notification
+        $subject = "Nouveau document disponible";
+        sendEmailNotification($user['email'], $subject, $emailContent);
     }
+} catch (PDOException $e) {
+    error_log("Erreur PDO : " . $e->getMessage());
+    return ['success' => false, 'message' => 'Erreur : Impossible de sauvegarder le fichier dans la base de données.'];
+}
 
     return ['success' => true, 'message' => 'Fichier téléversé avec succès.'];
 }
