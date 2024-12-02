@@ -83,12 +83,12 @@ function getWelcomeEmailTemplate($name, $email, $temporaryPassword, $logoUrl = '
             <!-- Header -->
             <div class='email-header'>
                 <img src='$logoUrl' alt='Logo'>
-                <h1>Bienvenue sur notre plateforme</h1>
+                <h1>Bienvenue sur notre plateforme RH</h1>
             </div>
             <!-- Body -->
             <div class='email-body'>
                 <p>Bonjour $name,</p>
-                <p>Un compte a été créé pour vous sur notre plateforme. Voici vos identifiants de connexion :</p>
+                <p>Un compte a été créé pour vous sur notre plateforme RH. Voici vos identifiants de connexion :</p>
                 <div class='account-info'>
                     <strong>Email :</strong> $email<br>
                     <strong>Mot de passe temporaire :</strong> $temporaryPassword
@@ -102,7 +102,7 @@ function getWelcomeEmailTemplate($name, $email, $temporaryPassword, $logoUrl = '
             </div>
             <!-- Footer -->
             <div class='email-footer'>
-                &copy; 2024 BW PROD | <a href='https://bwprod.outdoorsecours.fr'>Accédez à la plateforme</a>
+                &copy; 2024 BW PROD | <a href='https://myapps.bewitness.fr'>Accédez à la plateforme</a>
             </div>
         </div>
     </body>
