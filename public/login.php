@@ -85,7 +85,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <img src="https://images.squarespace-cdn.com/content/v1/56893684d8af102bf3e403f1/1571317878518-X3DEUWJNOFZKBZ4LKQ54/Logo_BeWitness_Full.png?format=1500w" alt="Logo BeWitness" class="logo">
 
     <!-- Message de Bienvenue -->
-    <div class="welcome-message">Bienvenue dans l'Espace Documentaire</div>
+    <div class="welcome-message">Bienvenue dans votre espace RH</div>
 
     <!-- Affiche un message d'erreur, si nécessaire -->
     <?php if ($error): ?>
