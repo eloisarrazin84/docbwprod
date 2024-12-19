@@ -128,7 +128,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <textarea class="form-control" id="comment" name="comment" rows="3" placeholder="Ajoutez un commentaire..."></textarea>
         </div>
         <div class="form-group">
-            <label for="receipt" class="form-label">Justificatif (optionnel)</label>
+            <label for="receipt" class="form-label">Justificatif</label>
             <input type="file" class="form-control" id="receipt" name="receipt" accept="image/*,application/pdf">
             <small class="text-muted">Formats acceptés : images, PDF. Taille max : 5 Mo</small>
         </div>
