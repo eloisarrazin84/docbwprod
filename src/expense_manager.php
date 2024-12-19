@@ -52,19 +52,26 @@ function listAllExpenses() {
 
 function updateExpenseStatus($expenseId, $status) {
     global $pdo;
-    $validStatuses = ['brouillon', 'soumise', 'approuvé', 'rejeté']; // Correspond à l'ENUM
+    $validStatuses = ['brouillon', 'soumise', 'approuvée', 'rejetée', 'envoyé en paiement', 'payé']; // Ajout des nouveaux statuts
     if (!in_array($status, $validStatuses)) {
         error_log("Erreur : Statut invalide '{$status}' transmis.");
         return false;
     }
 
     try {
+        // Mettre à jour le statut
         $stmt = $pdo->prepare("
             UPDATE expense_notes 
             SET status = ? 
             WHERE id = ?
         ");
         $stmt->execute([$status, $expenseId]);
+
+        // Si le statut est "payé", archiver la note de frais
+        if ($status === 'payé') {
+            archiveExpense($expenseId);
+        }
+
         return true;
     } catch (PDOException $e) {
         error_log("Erreur PDO : " . $e->getMessage());
@@ -72,34 +79,17 @@ function updateExpenseStatus($expenseId, $status) {
     }
 }
 
-function updateExpense($expenseId, $description, $amount, $category, $expenseDate, $comment) {
+function archiveExpense($expenseId) {
     global $pdo;
     try {
         $stmt = $pdo->prepare("
             UPDATE expense_notes 
-            SET description = ?, amount = ?, category = ?, expense_date = ?, comment = ? 
-            WHERE id = ?
-        ");
-        $stmt->execute([$description, $amount, $category, $expenseDate, $comment, $expenseId]);
-        return true;
-    } catch (PDOException $e) {
-        error_log("Erreur PDO : " . $e->getMessage());
-        return false;
-    }
-}
-
-function deleteExpense($expenseId) {
-    global $pdo;
-    try {
-        $stmt = $pdo->prepare("
-            DELETE FROM expense_notes 
+            SET archived = 1 
             WHERE id = ?
         ");
         $stmt->execute([$expenseId]);
-        return true;
     } catch (PDOException $e) {
         error_log("Erreur PDO : " . $e->getMessage());
-        return false;
     }
 }
 
