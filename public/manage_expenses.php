@@ -232,7 +232,7 @@ function listSubmittedExpenses($category = '', $status = '', $date = '', $user =
                                         <td><?= htmlspecialchars($expense['expense_date']) ?></td>
                                         <td>
                                             <?php if (!empty($expense['receipt_path'])): ?>
-                                                <a href="/uploads/receipts<?= htmlspecialchars($expense['receipt_path']) ?>" target="_blank">Voir</a>
+                                                <a href="/uploads/receipts/<?= htmlspecialchars($expense['receipt_path']) ?>" target="_blank">Voir</a>
                                             <?php else: ?>
                                                 Aucun
                                             <?php endif; ?>
