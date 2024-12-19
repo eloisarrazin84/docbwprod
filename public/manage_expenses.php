@@ -130,21 +130,22 @@ function listSubmittedExpenses($category = '', $status = '', $date = '', $user =
             border: none;
             box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
             transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
+            overflow: hidden;
         }
 
         .card-header {
             background-color: #17a2b8;
             color: white;
-            font-size: 1.5rem;
+            font-size: 1.25rem;
             text-align: center;
-            padding: 1rem;
+            padding: 0.8rem;
             font-weight: bold;
         }
 
         .badge-status {
             display: inline-block;
-            padding: 0.5rem 1rem;
-            font-size: 0.85rem;
+            padding: 0.4rem 0.7rem;
+            font-size: 0.9rem;
             font-weight: bold;
             border-radius: 12px;
             color: white;
@@ -171,8 +172,45 @@ function listSubmittedExpenses($category = '', $status = '', $date = '', $user =
         }
 
         .btn-sm {
-            padding: 5px 10px;
-            font-size: 0.8rem;
+            font-size: 0.85rem;
+        }
+
+        .table th, .table td {
+            text-align: center;
+            vertical-align: middle;
+        }
+
+        /* Responsiveness */
+        @media (max-width: 768px) {
+            .table {
+                font-size: 0.85rem;
+            }
+
+            .table thead {
+                display: none;
+            }
+
+            .table tr {
+                display: block;
+                margin-bottom: 1rem;
+            }
+
+            .table td {
+                display: flex;
+                justify-content: space-between;
+                padding: 0.5rem;
+                border-bottom: 1px solid #dee2e6;
+            }
+
+            .table td::before {
+                content: attr(data-label);
+                font-weight: bold;
+                margin-right: 0.5rem;
+            }
+
+            .card-header {
+                font-size: 1rem;
+            }
         }
     </style>
 </head>
@@ -192,7 +230,7 @@ function listSubmittedExpenses($category = '', $status = '', $date = '', $user =
         <?php foreach ($groupedExpenses as $userEmail => $userExpenses): ?>
             <div class="card mb-4">
                 <div class="card-header">
-                    <h2><?= htmlspecialchars($userExpenses[0]['user_name']) ?> (<?= htmlspecialchars($userEmail) ?>)</h2>
+                    <?= htmlspecialchars($userExpenses[0]['user_name']) ?> (<?= htmlspecialchars($userEmail) ?>)
                 </div>
                 <div class="card-body">
                     <div class="table-responsive">
@@ -212,11 +250,11 @@ function listSubmittedExpenses($category = '', $status = '', $date = '', $user =
                             <tbody>
                                 <?php foreach ($userExpenses as $expense): ?>
                                     <tr>
-                                        <td><?= htmlspecialchars($expense['id']) ?></td>
-                                        <td><?= htmlspecialchars($expense['description']) ?></td>
-                                        <td><?= htmlspecialchars($expense['amount']) ?></td>
-                                        <td><?= htmlspecialchars($expense['category']) ?></td>
-                                        <td>
+                                        <td data-label="ID"><?= htmlspecialchars($expense['id']) ?></td>
+                                        <td data-label="Description"><?= htmlspecialchars($expense['description']) ?></td>
+                                        <td data-label="Montant (€)"><?= htmlspecialchars($expense['amount']) ?></td>
+                                        <td data-label="Catégorie"><?= htmlspecialchars($expense['category']) ?></td>
+                                        <td data-label="Statut">
                                             <?php
                                             $statusClass = match (strtolower($expense['status'])) {
                                                 'soumise' => 'badge-soumise',
@@ -229,29 +267,29 @@ function listSubmittedExpenses($category = '', $status = '', $date = '', $user =
                                             ?>
                                             <span class="badge-status <?= $statusClass ?>"><?= htmlspecialchars($expense['status']) ?></span>
                                         </td>
-                                        <td><?= htmlspecialchars($expense['expense_date']) ?></td>
-                                        <td>
+                                        <td data-label="Date de Dépense"><?= htmlspecialchars($expense['expense_date']) ?></td>
+                                        <td data-label="Justificatif">
                                             <?php if (!empty($expense['receipt_path'])): ?>
                                                 <a href="/uploads/receipts/<?= htmlspecialchars($expense['receipt_path']) ?>" target="_blank" class="btn btn-link">Voir</a>
                                             <?php else: ?>
                                                 Aucun
                                             <?php endif; ?>
                                         </td>
-                                        <td>
+                                        <td data-label="Actions">
                                             <form method="POST" class="d-inline">
                                                 <input type="hidden" name="expense_id" value="<?= htmlspecialchars($expense['id']) ?>">
-                                                <select name="status" class="form-select form-select-sm">
+                                                <select name="status" class="form-select form-select-sm mb-1">
                                                     <option value="soumise" <?= $expense['status'] === 'soumise' ? 'selected' : '' ?>>Soumise</option>
                                                     <option value="approuvée" <?= $expense['status'] === 'approuvée' ? 'selected' : '' ?>>Approuvée</option>
                                                     <option value="rejetée" <?= $expense['status'] === 'rejetée' ? 'selected' : '' ?>>Rejetée</option>
                                                     <option value="envoyé en paiement" <?= $expense['status'] === 'envoyé en paiement' ? 'selected' : '' ?>>Envoyé en Paiement</option>
                                                     <option value="payé" <?= $expense['status'] === 'payé' ? 'selected' : '' ?>>Payé</option>
                                                 </select>
-                                                <button type="submit" name="update_status" class="btn btn-primary btn-sm mt-1">Mettre à jour</button>
+                                                <button type="submit" name="update_status" class="btn btn-primary btn-sm w-100">Mettre à jour</button>
                                             </form>
                                             <form method="POST" class="d-inline">
                                                 <input type="hidden" name="expense_id" value="<?= htmlspecialchars($expense['id']) ?>">
-                                                <button type="submit" name="delete_expense" class="btn btn-danger btn-sm mt-1">Supprimer</button>
+                                                <button type="submit" name="delete_expense" class="btn btn-danger btn-sm w-100 mt-1">Supprimer</button>
                                             </form>
                                         </td>
                                     </tr>
