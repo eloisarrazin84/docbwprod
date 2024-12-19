@@ -107,7 +107,7 @@ function listSubmittedExpenses($category = '', $status = '', $date = '', $user =
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
     <style>
-       body {
+        body {
             background-color: #f8f9fa;
         }
 
@@ -132,11 +132,6 @@ function listSubmittedExpenses($category = '', $status = '', $date = '', $user =
             transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
         }
 
-        .card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0px 6px 10px rgba(0, 0, 0, 0.15);
-        }
-
         .card-header {
             background-color: #17a2b8;
             color: white;
@@ -144,11 +139,6 @@ function listSubmittedExpenses($category = '', $status = '', $date = '', $user =
             text-align: center;
             padding: 1rem;
             font-weight: bold;
-        }
-
-        .table th, .table td {
-            vertical-align: middle;
-            text-align: center;
         }
 
         .badge-status {
@@ -171,16 +161,25 @@ function listSubmittedExpenses($category = '', $status = '', $date = '', $user =
         .badge-rejetée {
             background-color: #dc3545;
         }
+
+        .badge-envoyé-paiement {
+            background-color: #ffc107;
+        }
+
+        .badge-payé {
+            background-color: #17a2b8;
+        }
+
+        .btn-sm {
+            padding: 5px 10px;
+            font-size: 0.8rem;
+        }
     </style>
 </head>
 <body>
 <div class="container mt-5">
     <a href="dashboard.php" class="btn-back mb-3"><i class="fas fa-arrow-left"></i> Retour au Tableau de Bord</a>
     <h1 class="text-center mb-4">Gestion des Notes de Frais</h1>
-
-    <form method="GET" class="row mb-4">
-        <!-- Formulaires de filtre -->
-    </form>
 
     <?php if (!empty($expenses)): ?>
         <?php
@@ -196,42 +195,70 @@ function listSubmittedExpenses($category = '', $status = '', $date = '', $user =
                     <h2><?= htmlspecialchars($userExpenses[0]['user_name']) ?> (<?= htmlspecialchars($userEmail) ?>)</h2>
                 </div>
                 <div class="card-body">
-                    <table class="table table-striped">
-                        <thead>
-                            <tr>
-                                <th>ID</th>
-                                <th>Description</th>
-                                <th>Montant (€)</th>
-                                <th>Catégorie</th>
-                                <th>Statut</th>
-                                <th>Date de Dépense</th>
-                                <th>Justificatif</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <?php foreach ($userExpenses as $expense): ?>
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
                                 <tr>
-                                    <td><?= htmlspecialchars($expense['id']) ?></td>
-                                    <td><?= htmlspecialchars($expense['description']) ?></td>
-                                    <td><?= htmlspecialchars($expense['amount']) ?></td>
-                                    <td><?= htmlspecialchars($expense['category']) ?></td>
-                                    <td><?= htmlspecialchars($expense['status']) ?></td>
-                                    <td><?= htmlspecialchars($expense['expense_date']) ?></td>
-                                    <td>
-                                        <?php if (!empty($expense['receipt_path'])): ?>
-                                            <a href="/uploads/<?= htmlspecialchars($expense['receipt_path']) ?>" target="_blank">Voir</a>
-                                        <?php else: ?>
-                                            Aucun
-                                        <?php endif; ?>
-                                    </td>
-                                    <td>
-                                        <!-- Actions -->
-                                    </td>
+                                    <th>ID</th>
+                                    <th>Description</th>
+                                    <th>Montant (€)</th>
+                                    <th>Catégorie</th>
+                                    <th>Statut</th>
+                                    <th>Date de Dépense</th>
+                                    <th>Justificatif</th>
+                                    <th>Actions</th>
                                 </tr>
-                            <?php endforeach; ?>
-                        </tbody>
-                    </table>
+                            </thead>
+                            <tbody>
+                                <?php foreach ($userExpenses as $expense): ?>
+                                    <tr>
+                                        <td><?= htmlspecialchars($expense['id']) ?></td>
+                                        <td><?= htmlspecialchars($expense['description']) ?></td>
+                                        <td><?= htmlspecialchars($expense['amount']) ?></td>
+                                        <td><?= htmlspecialchars($expense['category']) ?></td>
+                                        <td>
+                                            <?php
+                                            $statusClass = match (strtolower($expense['status'])) {
+                                                'soumise' => 'badge-soumise',
+                                                'approuvée' => 'badge-approuvée',
+                                                'rejetée' => 'badge-rejetée',
+                                                'envoyé en paiement' => 'badge-envoyé-paiement',
+                                                'payé' => 'badge-payé',
+                                                default => 'badge-secondary',
+                                            };
+                                            ?>
+                                            <span class="badge-status <?= $statusClass ?>"><?= htmlspecialchars($expense['status']) ?></span>
+                                        </td>
+                                        <td><?= htmlspecialchars($expense['expense_date']) ?></td>
+                                        <td>
+                                            <?php if (!empty($expense['receipt_path'])): ?>
+                                                <a href="/uploads/<?= htmlspecialchars($expense['receipt_path']) ?>" target="_blank">Voir</a>
+                                            <?php else: ?>
+                                                Aucun
+                                            <?php endif; ?>
+                                        </td>
+                                        <td>
+                                            <form method="POST" class="d-inline">
+                                                <input type="hidden" name="expense_id" value="<?= htmlspecialchars($expense['id']) ?>">
+                                                <select name="status" class="form-select form-select-sm">
+                                                    <option value="soumise" <?= $expense['status'] === 'soumise' ? 'selected' : '' ?>>Soumise</option>
+                                                    <option value="approuvée" <?= $expense['status'] === 'approuvée' ? 'selected' : '' ?>>Approuvée</option>
+                                                    <option value="rejetée" <?= $expense['status'] === 'rejetée' ? 'selected' : '' ?>>Rejetée</option>
+                                                    <option value="envoyé en paiement" <?= $expense['status'] === 'envoyé en paiement' ? 'selected' : '' ?>>Envoyé en Paiement</option>
+                                                    <option value="payé" <?= $expense['status'] === 'payé' ? 'selected' : '' ?>>Payé</option>
+                                                </select>
+                                                <button type="submit" name="update_status" class="btn btn-primary btn-sm mt-1">Mettre à jour</button>
+                                            </form>
+                                            <form method="POST" class="d-inline">
+                                                <input type="hidden" name="expense_id" value="<?= htmlspecialchars($expense['id']) ?>">
+                                                <button type="submit" name="delete_expense" class="btn btn-danger btn-sm mt-1">Supprimer</button>
+                                            </form>
+                                        </td>
+                                    </tr>
+                                <?php endforeach; ?>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
         <?php endforeach; ?>
