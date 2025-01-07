@@ -22,6 +22,12 @@ function createUser($name, $email, $password, $role = 'user') {
     }
 }
 
+function updateUserRole($userId, $role) {
+    global $pdo;
+    $stmt = $pdo->prepare('UPDATE users SET role = :role WHERE id = :id');
+    $stmt->execute(['role' => $role, 'id' => $userId]);
+}
+
 function listUsers() {
     global $pdo;
     $stmt = $pdo->query("SELECT id, name, email, role FROM users");
