@@ -52,14 +52,13 @@ function listAllExpenses() {
 
 function updateExpenseStatus($expenseId, $status) {
     global $pdo;
-    $validStatuses = ['brouillon', 'soumise', 'approuvée', 'rejetée', 'envoyé en paiement', 'payé']; // Ajout des nouveaux statuts
+    $validStatuses = ['brouillon', 'soumise', 'approuvée', 'rejetée', 'envoyé en paiement', 'payé'];
     if (!in_array($status, $validStatuses)) {
         error_log("Erreur : Statut invalide '{$status}' transmis.");
         return false;
     }
 
     try {
-        // Mettre à jour le statut
         $stmt = $pdo->prepare("
             UPDATE expense_notes 
             SET status = ? 
@@ -67,18 +66,21 @@ function updateExpenseStatus($expenseId, $status) {
         ");
         $stmt->execute([$status, $expenseId]);
 
-        // Si le statut est "payé", archiver la note de frais
+        if ($stmt->rowCount() === 0) {
+            error_log("Aucune note de frais mise à jour. ID : {$expenseId}");
+            return false; // Si aucune ligne n'est mise à jour
+        }
+
         if ($status === 'payé') {
             archiveExpense($expenseId);
         }
 
         return true;
     } catch (PDOException $e) {
-        error_log("Erreur PDO : " . $e->getMessage());
+        error_log("Erreur PDO lors de la mise à jour du statut : " . $e->getMessage());
         return false;
     }
 }
-
 function archiveExpense($expenseId) {
     global $pdo;
     try {
@@ -115,6 +117,26 @@ function getExpenseDetails($expenseId) {
     } catch (PDOException $e) {
         error_log("Erreur PDO : " . $e->getMessage());
         return null;
+    }
+}
+function deleteExpense($expenseId) {
+    global $pdo;
+    try {
+        $stmt = $pdo->prepare("
+            DELETE FROM expense_notes 
+            WHERE id = ?
+        ");
+        $stmt->execute([$expenseId]);
+
+        if ($stmt->rowCount() === 0) {
+            error_log("Aucune note de frais supprimée. ID : {$expenseId}");
+            return false;
+        }
+
+        return true;
+    } catch (PDOException $e) {
+        error_log("Erreur PDO lors de la suppression de la note de frais : " . $e->getMessage());
+        return false;
     }
 }
 ?>
