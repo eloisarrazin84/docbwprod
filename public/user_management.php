@@ -8,6 +8,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         createUser($_POST['name'], $_POST['email'], $_POST['password'], $_POST['role']);
     } elseif (isset($_POST['delete_user'])) {
         deleteUser(intval($_POST['user_id']));
+    } elseif (isset($_POST['update_user_role'])) {
+        updateUserRole(intval($_POST['user_id']), $_POST['role']);
     }
 }
 
@@ -89,13 +91,10 @@ $users = listUsers();
 </head>
 <body>
 <div class="container mt-5">
-    <!-- Retour au tableau de bord -->
     <a href="dashboard.php" class="btn-back mb-3"><i class="fas fa-arrow-left"></i> Retour au Tableau de Bord</a>
 
-    <!-- Titre -->
     <h1 class="text-center mb-4">Gestion des Utilisateurs</h1>
 
-    <!-- Formulaire pour ajouter un utilisateur -->
     <div class="card mb-4">
         <div class="card-body">
             <h2>Créer un Nouvel Utilisateur</h2>
@@ -124,7 +123,6 @@ $users = listUsers();
         </div>
     </div>
 
-    <!-- Liste des utilisateurs -->
     <div class="card">
         <div class="card-header bg-info text-white">
             <h2 class="card-title">Liste des Utilisateurs</h2>
@@ -148,7 +146,16 @@ $users = listUsers();
                                     <td data-label="ID"><?= htmlspecialchars($user['id']) ?></td>
                                     <td data-label="Nom"><?= htmlspecialchars($user['name']) ?></td>
                                     <td data-label="E-mail"><?= htmlspecialchars($user['email']) ?></td>
-                                    <td data-label="Rôle"><?= htmlspecialchars($user['role']) ?></td>
+                                    <td data-label="Rôle">
+                                        <form method="POST" class="d-inline">
+                                            <input type="hidden" name="user_id" value="<?= htmlspecialchars($user['id']) ?>">
+                                            <select name="role" class="form-select form-select-sm" onchange="this.form.submit()">
+                                                <option value="user" <?= $user['role'] === 'user' ? 'selected' : '' ?>>Utilisateur</option>
+                                                <option value="admin" <?= $user['role'] === 'admin' ? 'selected' : '' ?>>Admin</option>
+                                            </select>
+                                            <input type="hidden" name="update_user_role" value="1">
+                                        </form>
+                                    </td>
                                     <td data-label="Actions">
                                         <form method="POST" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer cet utilisateur ?');" style="display:inline;">
                                             <input type="hidden" name="user_id" value="<?= htmlspecialchars($user['id']) ?>">
